@@ -96,6 +96,17 @@ h3 {
     transform: translateY(-2px);
 }
 
+#copy-infos-self {
+    background: linear-gradient(45deg, #6aa8ff, #5a76ff);
+    color: white;
+}
+
+#copy-infos-self:hover {
+    background: linear-gradient(45deg, #5a76ff, #6aa8ff);
+    box-shadow: 0 6px 20px rgba(253, 93, 86, 0.4);
+    transform: translateY(-2px);
+}
+
 @keyframes pulse {
     0% {
         box-shadow: 0 0 0 0 rgba(53, 114, 239, 0.7);

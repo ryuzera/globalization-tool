@@ -50,8 +50,6 @@
       console.log("URLs copiadas com sucesso!");
       
     }).catch(err => {
-      console.error("Error copying:", err);
-      
       const textArea = document.createElement("textarea");
       textArea.value = finalText;
       document.body.appendChild(textArea);

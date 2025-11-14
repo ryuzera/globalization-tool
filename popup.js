@@ -32,7 +32,30 @@ document.getElementById("copy-infos").addEventListener("click", function() {
     const tabId = tabs[0].id;
     chrome.scripting.executeScript({
       target: { tabId: tabId },
-      files: ["jira-info.js"]
+      files: ["jira-info-qa.js"]
+    }, () => {
+      setTimeout(() => {
+        button.classList.remove("loading");
+        button.textContent = originalText;
+        
+        showNotification("Mandatory Infos Copied Successfully!");
+      });
+    });
+  });
+});
+
+document.getElementById("copy-infos-self").addEventListener("click", function() {
+  const button = this;
+  const originalText = button.textContent;
+  
+  button.classList.add("loading");
+  button.textContent = "Copying...";
+  
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0].id;
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ["jira-info-self.js"]
     }, () => {
       setTimeout(() => {
         button.classList.remove("loading");
