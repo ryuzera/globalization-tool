@@ -107,15 +107,59 @@ h3 {
     transform: translateY(-2px);
 }
 
+#comment-pre {
+    background: linear-gradient(45deg, #00951e, #00c438);
+    color: white;
+}
+
+#comment-pre:hover {
+    background: linear-gradient(45deg, #00951e, #00c438);
+    box-shadow: 0 6px 20px rgba(253, 93, 86, 0.4);
+    transform: translateY(-2px);
+}
+
+#comment-pos {
+    background: linear-gradient(45deg, #00951e, #00c438);
+    color: white;
+}
+
+#comment-pos:hover {
+    background: linear-gradient(45deg, #00951e, #00c438);
+    box-shadow: 0 6px 20px rgba(253, 93, 86, 0.4);
+    transform: translateY(-2px);
+}
+
+#report-comment-pre {
+    background: linear-gradient(45deg, #dca900, #c47f00);
+    color: white;
+}
+
+#report-comment-pre:hover {
+    background: linear-gradient(45deg, #dca900, #c47f00);
+    box-shadow: 0 6px 20px rgba(253, 93, 86, 0.4);
+    transform: translateY(-2px);
+}
+
+#report-comment-pos {
+    background: linear-gradient(45deg, #dca900, #c47f00);
+    color: white;
+}
+
+#report-comment-pos:hover {
+    background: linear-gradient(45deg, #dca900, #c47f00);
+    box-shadow: 0 6px 20px rgba(253, 93, 86, 0.4);
+    transform: translateY(-2px);
+}
+
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(53, 114, 239, 0.7);
+        box-shadow: 0 0 0 0 rgba(142, 185, 255, 0.7);
     }
     70% {
-        box-shadow: 0 0 0 10px rgba(53, 114, 239, 0);
+        box-shadow: 0 0 0 10px rgba(0, 85, 255, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(53, 114, 239, 0);
+        box-shadow: 0 0 0 0 rgba(0, 59, 178, 0);
     }
 }
 
