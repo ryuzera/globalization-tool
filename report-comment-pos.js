@@ -1,7 +1,5 @@
 (function () {
   try {
-    console.log("URLs.js (Jira Format) executando...");
-    
     const container = document.querySelector("#description-val");
     const fullPageText = document.body.innerText;
 
@@ -17,49 +15,67 @@
 
     const rawUrls = text.match(/https?:\/\/[^\s)]+/g) || [];
     const paths = [];
+    const aemPrefix = "https://author-p131558-e1281329.adobeaemcloud.com/editor.html/content/experience-fragments/adobe-cms/language-masters/en/";
 
     rawUrls.forEach(url => {
-      if (url.startsWith("https://www.ibm.com") || url.startsWith("http://www.ibm.com")) {
+      let cleanUrl = url.split('?')[0];
+      if (cleanUrl.includes("/config/")) {
         try {
-          const u = new URL(url);
+          const startIndex = cleanUrl.indexOf("/config/");
+          let path = cleanUrl.substring(startIndex);
+          path = path.replace(/\.html$/, '');
+          paths.push(path);
+        } catch (e) {}
+      }
+      else if (cleanUrl.startsWith(aemPrefix)) {
+        let path = cleanUrl.replace(aemPrefix, "");
+        path = path.replace(/\.html$/, '');
+        if (path) paths.push("/" + path);
+      }
+      else if (cleanUrl.startsWith("https://www.ibm.com") || cleanUrl.startsWith("http://www.ibm.com")) {
+        try {
+          const u = new URL(cleanUrl);
           let path = u.pathname;
-
           path = path.replace(/^\/editor\.html/, '');
           path = path.replace(/^\/content\/adobe-cms\/language-masters\/en/, '');
           path = path.replace(/^\/content\/experience-fragments\/adobe-cms\/language-masters\/en/, '');
           path = path.replace(/\.html$/, '');
-          path = path.replace(/\?.*$/, '');
-
           paths.push(path);
-        } catch (e) {
-          console.warn("URL unavailable:", url);
-        }
+        } catch (e) {}
       }
     });
 
     const uniquePaths = [...new Set(paths)];
 
     if (uniquePaths.length === 0) {
-      console.warn("No IBM URLs found.");
-      alert("Nenhum link https://www.ibm.com foi encontrado na descrição.");
+      alert("Nenhum link válido encontrado.");
       return;
     }
 
+    const failedInput = prompt("Total de links: " + uniquePaths.length + "\nDigite os números que FALHARAM (ex: 1, 3):\nDeixe em branco caso nenhuma FALHOU.");
+    
+    // Converte a string "4, 6" em um array de números [4, 6]
+    const failedNumbers = failedInput 
+      ? failedInput.split(/[\s,.-]+/).map(n => parseInt(n.trim())) 
+      : [];
+
     let finalText = "*{color:#FF8B00}Tech QA Report (!){color}* \n\n";
-    finalText += "Hi Team\nSome pages have been approved and published, but the pages ... show the following issues:\n\n";
+    finalText += "Hi Team\nSome pages have been approved, but the pages ... show the following issues:\n\n";
 
     uniquePaths.forEach((path, index) => {
       const num = index + 1;
-      finalText += `*#${num}* _${path} *{color:#00875a}(published){color}* {color:#00875a}*✔*{color}_\n`;
+      
+      if (failedNumbers.includes(num)) {
+        finalText += `*#${num}* _${path} *{color:#DE350B}(failed){color}* {color:#DE350B}*✘*{color}_\n`;
+      } else {
+        finalText += `*#${num}* _${path} *{color:#00875a}(published){color}* {color:#00875a}*✔*{color}_\n`;
+      }
     });
 
-    finalText += `\nThanks!\n\n*TS:* ${boxLink}\n\n*{color:#DE350B}(failed) ✘{color}*_`; 
-
-    console.log("Texto formatado pronto para cópia.");
+    finalText += `\nThanks!\n\n*TS:* ${boxLink}`; 
 
     navigator.clipboard.writeText(finalText).then(() => {
-      console.log("URLs formatadas copiadas com sucesso!");
-      alert("Relatório copiado para a área de transferência!"); 
+      alert("Relatório copiado!"); 
     }).catch(err => {
       const textArea = document.createElement("textarea");
       textArea.value = finalText;
@@ -67,7 +83,6 @@
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      console.log("Fallback: URLs copiadas via execCommand");
     });
 
   } catch (error) {

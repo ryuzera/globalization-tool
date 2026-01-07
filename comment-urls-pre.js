@@ -1,7 +1,5 @@
 (function () {
   try {
-    console.log("URLs.js (Jira Format - Approved) executando...");
-    
     const container = document.querySelector("#description-val");
     const fullPageText = document.body.innerText;
 
@@ -17,31 +15,41 @@
 
     const rawUrls = text.match(/https?:\/\/[^\s)]+/g) || [];
     const paths = [];
+    const aemPrefix = "https://author-p131558-e1281329.adobeaemcloud.com/editor.html/content/experience-fragments/adobe-cms/language-masters/en/";
 
     rawUrls.forEach(url => {
-      if (url.startsWith("https://www.ibm.com") || url.startsWith("http://www.ibm.com")) {
-        try {
-          const u = new URL(url);
-          let path = u.pathname;
+      let cleanUrl = url.split('?')[0];
 
+      if (cleanUrl.includes("/config/")) {
+        try {
+          const startIndex = cleanUrl.indexOf("/config/");
+          let path = cleanUrl.substring(startIndex);
+          path = path.replace(/\.html$/, '');
+          paths.push(path);
+        } catch (e) {}
+      }
+      else if (cleanUrl.startsWith(aemPrefix)) {
+        let path = cleanUrl.replace(aemPrefix, "");
+        path = path.replace(/\.html$/, '');
+        if (path) paths.push("/" + path);
+      }
+      else if (cleanUrl.startsWith("https://www.ibm.com") || cleanUrl.startsWith("http://www.ibm.com")) {
+        try {
+          const u = new URL(cleanUrl);
+          let path = u.pathname;
           path = path.replace(/^\/editor\.html/, '');
           path = path.replace(/^\/content\/adobe-cms\/language-masters\/en/, '');
           path = path.replace(/^\/content\/experience-fragments\/adobe-cms\/language-masters\/en/, '');
           path = path.replace(/\.html$/, '');
-          path = path.replace(/\?.*$/, '');
-
           paths.push(path);
-        } catch (e) {
-          console.warn("URL unavailable:", url);
-        }
+        } catch (e) {}
       }
     });
 
     const uniquePaths = [...new Set(paths)];
 
     if (uniquePaths.length === 0) {
-      console.warn("No IBM URLs found.");
-      alert("Nenhum link https://www.ibm.com foi encontrado na descrição.");
+      alert("Nenhum link válido encontrado para o relatório.");
       return;
     }
 
@@ -55,10 +63,7 @@
 
     finalText += `\nThanks!\n\n*TS:* ${boxLink}`; 
 
-    console.log("Texto formatado pronto para cópia.");
-
     navigator.clipboard.writeText(finalText).then(() => {
-      console.log("URLs formatadas copiadas com sucesso!");
       alert("Relatório de Aprovação copiado!"); 
     }).catch(err => {
       const textArea = document.createElement("textarea");
