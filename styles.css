@@ -105,6 +105,16 @@ h3 {
     color: white;
 }
 
+#copy-date {
+    background: linear-gradient(45deg, #ff1919, #962a2a);
+    color: white;
+}
+
+#copy-date:hover {
+    background: linear-gradient(45deg, #ef3535, #f23939);
+    box-shadow: 0 4px 15px rgba(53, 114, 239, 0.3);
+}
+
 .notification {
     position: fixed;
     top: 10px;

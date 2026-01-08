@@ -162,6 +162,29 @@ document.getElementById("copy-infos-self").addEventListener("click", function() 
   });
 });
 
+document.getElementById("copy-date").addEventListener("click", function() {
+  const button = this;
+  const originalText = button.textContent;
+  
+  button.classList.add("loading");
+  button.textContent = "Copying...";
+  
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0].id;
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ["copy-date.js"]
+    }, () => {
+      setTimeout(() => {
+        button.classList.remove("loading");
+        button.textContent = originalText;
+        
+        showNotification("Current Date Copied Successfully!");
+      });
+    });
+  });
+});
+
 function showNotification(message) {
   const notification = document.createElement('div');
   notification.className = 'notification';
