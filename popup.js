@@ -185,6 +185,28 @@ document.getElementById("copy-date").addEventListener("click", function() {
   });
 });
 
+document.getElementById("publish").addEventListener("click", function() {
+  const button = this;
+  const originalText = button.textContent;
+  
+  button.classList.add("loading");
+  button.textContent = "Copying...";
+  
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0].id;
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ["publish.js"]
+    }, () => {
+      setTimeout(() => {
+        button.classList.remove("loading");
+        button.textContent = originalText;
+        
+      });
+    });
+  });
+});
+
 function showNotification(message) {
   const notification = document.createElement('div');
   notification.className = 'notification';

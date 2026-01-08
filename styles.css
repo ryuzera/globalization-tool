@@ -115,6 +115,16 @@ h3 {
     box-shadow: 0 4px 15px rgba(53, 114, 239, 0.3);
 }
 
+#publish {
+    background: linear-gradient(45deg, #3a3a3a, #191919);
+    color: white;
+}
+
+#publish:hover {
+    background: linear-gradient(45deg, #373737, #5c5c5c);
+    box-shadow: 0 4px 15px rgba(53, 114, 239, 0.3);
+}
+
 .notification {
     position: fixed;
     top: 10px;

@@ -1,5 +1,4 @@
 function updateIcon(tabId, url) {
-  const isValid = /^https:\/\/jsw\.ibm\.com\/browse\/DSSM-\d+$/.test(url);
 
   chrome.action.setIcon({
     tabId: tabId,
