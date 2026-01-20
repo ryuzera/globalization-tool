@@ -1,12 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Globalization Suite",
-  "description": "Internal tools created by the Globalization team to simplify daily tasks \ud83d\ude01.",
-  "version": "1.9",
+  "description": "Internal tools created by the Globalization team + AEM Loader",
+  "version": "2.7.0",
   "permissions": [
     "scripting",
     "activeTab",
-    "clipboardWrite"
+    "clipboardWrite",
+    "tabGroups",
+    "storage"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -18,7 +20,7 @@
     "service_worker": "background.js"
   },
   "host_permissions": [
-    "*://*.jsw.ibm.com/*"
+    "<all_urls>"
   ],
   "icons": {
     "16": "icons/globe.png",
@@ -29,7 +31,10 @@
     {
       "resources": [
         "icons/globe.png",
-        "icons/globe-off.png"
+        "icons/globe-off.png",
+        "open-urls.js",
+        "publish.js",
+        "copy-date.js"
       ],
       "matches": [
         "<all_urls>"
