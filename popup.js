@@ -667,21 +667,21 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: "copy-date", file: "copy-date.js", msg: "Current Date Copied Successfully!" }
     ];
 
-    scripts.forEach(s => {
-        const btn = document.getElementById(s.id);
-        if(btn) {
-            btn.addEventListener("click", () => {
-                const originalText = btn.textContent;
-                btn.textContent = "...";
-                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                    if(!tabs[0]) return;
-                    chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: [s.file] }, () => {
-                        setTimeout(() => { btn.textContent = originalText; alert(s.msg); }, 500);
-                    });
-                });
-            });
-        }
-    });
+    // scripts.forEach(s => {
+    //     const btn = document.getElementById(s.id);
+    //     if(btn) {
+    //         btn.addEventListener("click", () => {
+    //             const originalText = btn.textContent;
+    //             btn.textContent = "...";
+    //             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    //                 if(!tabs[0]) return;
+    //                 chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: [s.file] }, () => {
+    //                     setTimeout(() => { btn.textContent = originalText; alert(s.msg); }, 500);
+    //                 });
+    //             });
+    //         });
+    //     }
+    // });
 
     const btnPublish = document.getElementById('publish');
     if(btnPublish) {
