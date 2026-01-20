@@ -217,3 +217,57 @@ function showNotification(message) {
     notification.remove();
   }, 1000);
 }
+
+(function() {
+  try {
+    const btn = document.getElementById('open-urls');
+    if (!btn) return; // do nothing if the button isn't present in popup.html
+
+    btn.addEventListener('click', () => {
+      const original = btn.textContent;
+      btn.textContent = '...';
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (!tabs[0]) { btn.textContent = original; return; }
+        chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, func: () => {} }, () => {
+          // then inject the content script file
+          chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ['open-urls.js'] }, () => {
+            setTimeout(() => { btn.textContent = original; }, 400);
+          });
+        });
+      });
+    });
+  } catch (e) {
+    console.warn('Open All Links launcher failed:', e);
+  }
+})();
+
+// v2.2.5 - close popup after sending the message to content script
+(() => {
+  const btn = document.getElementById('open-urls');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    try {
+      const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+      await chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        func: () => {
+          // inject open-urls.js logic if it's bundled as a file in extension
+          // or call existing content script entry point
+          if (typeof window.__openAllLinksInjected === 'function') {
+            window.__openAllLinksInjected();
+          } else {
+            // Fallback: try to append a <script> that points to open-urls.js in extension
+            const s = document.createElement('script');
+            s.src = chrome.runtime.getURL('open-urls.js');
+            (document.head || document.documentElement).appendChild(s);
+          }
+        }
+      });
+    } catch (e) {
+      console.error('Failed to execute script', e);
+    } finally {
+      window.close(); 
+    }
+  });
+})();

@@ -55,18 +55,43 @@
       return names.join(", ");
     }
 
+    function getWorkSize() {  
+      const el = document.querySelector("#customfield_13800-val");  
+      if (!el) return "";  return el.textContent.trim();
+    }
+
     const line1 = getText("#key-val");
     const line2 = "Globalization";
     const line3 = getText("#components-field");
     const line4 = getSpecificWordFromComment(); 
-    const line5 = "";
-    const line6 = getFirstName("#assignee-val");
+    const line5 = getFirstName("#assignee-val");
+    const line6 = "";
     const line7 = getInterestedParty();
-    const line8 = "";
+    const line8 = "No";
     const line9 = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
     const lines = [line1, line2, line3, line4, line5, line6, line7, line8, line9];
     const finalText = lines.join("\n");
+
+    // new TS
+    // const line1 = getText("#key-val");
+    // const line2 = "";
+    // const line3 = getFirstName("#assignee-val");
+    // const line4 = getWorkSize("#customfield_13800-val");
+    // const line5 = "";
+    // const line6 = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    // const line7 = "";
+    // const line8 = "";
+    // const line9 = "";
+    // const line10 = "";
+    // const line11 = getSpecificWordFromComment(); 
+    // const line12 = "Globalization";
+    // const line13 = getInterestedParty();
+
+    // const lines = [line1, line2, line3, line4, line5, line6, line7, line8, line9, line10, line11, line12, line13];
+    // const finalText = lines.join("\n");
+
+
 
     console.log("Texto final que será copiado:", finalText);
 

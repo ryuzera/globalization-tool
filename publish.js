@@ -1,5 +1,4 @@
 (function () {
-    // 1. Inserir a fonte IBM Plex Sans
     if (!document.getElementById('font-ibm-plex')) {
         const link = document.createElement('link');
         link.id = 'font-ibm-plex';
@@ -8,7 +7,6 @@
         document.head.appendChild(link);
     }
 
-    // 2. Overlay (Forçando LTR para páginas Árabes)
     const overlay = document.createElement("div");
     Object.assign(overlay.style, {
         position: "fixed", top: "0", left: "0", width: "100%", height: "100%",
@@ -18,7 +16,6 @@
         direction: "ltr", textAlign: "left"
     });
 
-    // 3. Box Style
     const box = document.createElement("div");
     Object.assign(box.style, {
         background: "rgba(255, 255, 255, 0.95)",

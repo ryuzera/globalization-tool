@@ -125,6 +125,16 @@ h3 {
     box-shadow: 0 4px 15px rgba(53, 114, 239, 0.3);
 }
 
+#open-urls {
+    background: linear-gradient(45deg, #a56eff, #8a3ffc);
+    color: white;
+}
+
+#open-urls:hover {
+    background: linear-gradient(45deg, #c29cff, #543187);
+    box-shadow: 0 4px 15px rgba(53, 114, 239, 0.3);
+}
+
 .notification {
     position: fixed;
     top: 10px;
