@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                     if(!tabs[0]) return;
                     chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: [s.file] }, () => {
-                        setTimeout(() => { btn.textContent = originalText; alert(s.msg); }, 500);
+                        setTimeout(() => { btn.textContent = originalText; alert(s.msg); }, 10);
                     });
                 });
             });
@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if(!tabs[0]) return;
                 chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["publish.js"] }, () => {
-                    setTimeout(() => { btnPublish.textContent = originalText; }, 500);
+                    setTimeout(() => { btnPublish.textContent = originalText; }, 10);
                 });
             });
         });
