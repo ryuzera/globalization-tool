@@ -27,24 +27,53 @@
     <div id="menu-view">
       <h3>GLOBALIZATION SUITE</h3>
       
-      <!-- <button id="btn-tracking-main" class="btn-minimal">
-          📂 Open Tracking Sheet
-      </button> -->
-
-      <div class="button-group" id="qa-buttons">
-        <button id="open-urls" class="button">Check internal Links</button>
-        <button id="copy-urls" class="button">Copy URLs</button>
-        <button id="copy-infos" class="button">Copy Mandatory Infos (Pre QA)</button>
-        <button id="copy-infos-self" class="button">Copy Mandatory Infos (Self QA)</button>
-        <button id="comment-pre" class="button">Generate Comment (Pre QA)</button>
-        <button id="comment-pos" class="button">Generate Comment (Pos QA)</button>
-        <button id="report-comment-pre" class="button">Report Comment (Pre QA)</button>
-        <button id="report-comment-pos" class="button">Report Comment (Pos QA)</button>
-        <button id="copy-date" class="button pulse">Copy Current Date</button>
-        <button id="publish" class="button pulse">Publish</button>
+      <div class="primary-actions">
+          <button id="open-loader" class="button btn-highlight">
+              🚀 AEM Multi-Loader
+          </button>
+          
+          <div class="row-group">
+              <button id="open-urls" class="button btn-primary">Check Links</button>
+              <button id="publish" class="button btn-dark pulse">Publish</button>
+          </div>
       </div>
-      
-      <button id="open-loader" class="button">AEM Multi-Loader</button>
+
+      <button id="btn-tracking-main" class="btn-minimal">
+          📂 Open Tracking Sheet
+      </button>
+
+      <hr class="separator">
+
+      <div class="accordion-group">
+          
+          <button class="accordion">ℹ️ Info & Utilities</button>
+          <div class="panel">
+              <div class="row-group-small">
+                  <button id="copy-infos" class="button btn-sub">Copy Info (Pre)</button>
+                  <button id="copy-infos-self" class="button btn-sub">Copy Info (Self)</button>
+              </div>
+              <div class="row-group-small">
+                  <button id="copy-urls" class="button btn-sub">Copy URLs</button>
+                  <button id="copy-date" class="button btn-sub btn-date">Copy Date</button>
+              </div>
+          </div>
+
+          <button class="accordion">💬 Jira Comments</button>
+          <div class="panel">
+              <div class="sub-group-label">Generate Comment</div>
+              <div class="row-group-small">
+                  <button id="comment-pre" class="button btn-sub">Pre-QA</button>
+                  <button id="comment-pos" class="button btn-sub">Pos-QA</button>
+              </div>
+              
+              <div class="sub-group-label">Report Comment</div>
+              <div class="row-group-small">
+                  <button id="report-comment-pre" class="button btn-sub">Report Pre</button>
+                  <button id="report-comment-pos" class="button btn-sub">Report Pos</button>
+              </div>
+          </div>
+
+      </div>
     </div>
 
     <div id="loader-view" style="display:none;">
@@ -65,7 +94,6 @@
       </div>
 
       <div id="step-selection" style="display:none;">
-        
         <div class="mode-toggle-container">
             <span style="font-size:11px; font-weight:bold; color:#555;">Mode:</span>
             <select id="mode-select" style="width: 100%; padding: 5px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc;">
@@ -91,18 +119,6 @@
             </div>
         </div>
 
-        <!-- <div style="margin: 8px 0; background: #e8f0fe; padding: 8px; border-radius: 4px; border: 1px dashed #0f62fe;">
-            <div style="display: flex; align-items: center;">
-                <input type="checkbox" id="chk-lazy-load" style="margin-right: 8px; cursor: pointer;" checked>
-                <label for="chk-lazy-load" style="font-size: 11px; color: #0f62fe; font-weight: bold; cursor: pointer;">
-                    ⚡ Lazy Load (Save Memory)
-                </label>
-            </div>
-            <div style="font-size: 9px; color: #666; margin-left: 20px; margin-top:2px;">
-                Tabs open in "sleep mode" until clicked.
-            </div>
-        </div> -->
-
         <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 5px; font-weight: bold;">
             <div style="display: flex; align-items: center;">
                 Target Locales
@@ -111,10 +127,6 @@
             <span id="toggleLocales" class="toggle-link" style="cursor: pointer; font-size: 0.8em; color: #0f62fe;">(Select All)</span>
         </div>
         <div class="locale-grid" id="localeContainer"></div>
-
-        <!-- <button id="btn-tracking-inner" class="btn-minimal">
-            📂 Open Tracking Sheet
-        </button> -->
 
         <div class="tabs-container">
             <button id="tab-pages" class="tab-btn tab-blue active">
