@@ -641,19 +641,29 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: "comment-pos", file: "comment-urls-pos.js", msg: "Comment Generated!" },
         { id: "report-comment-pre", file: "report-comment-pre.js", msg: "Report Generated!" },
         { id: "report-comment-pos", file: "report-comment-pos.js", msg: "Report Generated!" },
-        { id: "copy-date", file: "copy-date.js", msg: "Current Date Copied Successfully!" }
+        { id: "copy-date", file: "copy-date.js", msg: "Date Copied!" }
     ];
 
     scripts.forEach(s => {
         const btn = document.getElementById(s.id);
         if(btn) {
+            const originalText = btn.textContent;
+
             btn.addEventListener("click", () => {
-                const originalText = btn.textContent;
-                btn.textContent = "...";
                 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                     if(!tabs[0]) return;
-                    chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: [s.file] }, () => {
-                        setTimeout(() => { btn.textContent = originalText; alert(s.msg); }, 500);
+
+                    chrome.scripting.executeScript({ 
+                        target: { tabId: tabs[0].id }, 
+                        files: [s.file] 
+                    }, () => {
+                        btn.textContent = s.msg;
+                        btn.classList.add('success'); 
+
+                        setTimeout(() => { 
+                            btn.textContent = originalText; 
+                            btn.classList.remove('success');
+                        }, 500);
                     });
                 });
             });
@@ -668,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if(!tabs[0]) return;
                 chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["publish.js"] }, () => {
-                    setTimeout(() => { btnPublish.textContent = originalText; }, 500);
+                    setTimeout(() => { btnPublish.textContent = originalText; }, 0);
                 });
             });
         });
