@@ -329,14 +329,14 @@ textarea {
 
 /* Button Variants */
 .btn-highlight {
-    background: linear-gradient(45deg, #a56eff, #8a3ffc);
+    background: linear-gradient(45deg, #931616, #fc3f3f);
     font-size: 13px;
     padding: 14px;
     box-shadow: 0 4px 12px rgba(138, 63, 252, 0.25);
 }
 
 .btn-primary {
-    background: linear-gradient(45deg, #3ABEF9, #3572EF);
+    background: linear-gradient(45deg, #5d3af9, #5a15a3);
 }
 
 .btn-dark {
@@ -392,3 +392,122 @@ textarea {
     color: #0f62fe;
     background: #f4f8ff;
 }
+
+/* Info & Utilities */
+
+#copy-infos, #copy-infos-self {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+#copy-infos:hover, #copy-infos-self:hover {
+    background-color: #1976d2;
+    color: white;
+}
+
+#copy-urls {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+    border: 1px solid #e1bee7;
+}
+
+#copy-urls:hover {
+    background-color: #7b1fa2;
+    color: white;
+}
+
+#copy-date {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffe0b2;
+}
+
+#copy-date:hover {
+    background-color: #e65100;
+    color: white;
+}
+
+
+#copy-infos, 
+#copy-infos-self {
+    background: linear-gradient(45deg, #3ABEF9, #3572EF);
+    border: none;
+    color: white;
+}
+
+#copy-urls {
+    background: linear-gradient(45deg, #6eafff, #1e4290);
+    border: none;
+    color: white;
+}
+
+#copy-date {
+    background: #fff;
+    border: 1px solid #ffcccc;
+    color: #d93025;
+}
+
+#comment-pre, 
+#comment-pos {
+    background: linear-gradient(45deg, #24a148, #277d42);
+    border: none;
+    color: white;
+}
+
+#report-comment-pre, 
+#report-comment-pos {
+    background: linear-gradient(45deg, #fa9b4d, #b1942b);
+    border: none;
+    color: white;
+}
+
+
+.panel button[id]:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.panel button[id]:active {
+    transform: translateY(0px);
+    filter: brightness(0.9);
+}
+
+.row-group-small button[id] {
+    flex: 1;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+      /* <div class="accordion-group">
+          
+          <button class="accordion">ℹ️ Info & Utilities</button>
+          <div class="panel">
+              <div class="row-group-small">
+                  <button id="copy-infos" class="button btn-sub">Copy Info (Pre)</button>
+                  <button id="copy-infos-self" class="button btn-sub">Copy Info (Self)</button>
+              </div>
+              <div class="row-group-small">
+                  <button id="copy-urls" class="button btn-sub">Copy URLs</button>
+                  <button id="copy-date" class="button btn-sub btn-date">Copy Date</button>
+              </div>
+          </div>
+
+          <button class="accordion">💬 Jira Comments</button>
+          <div class="panel">
+              <div class="sub-group-label">Generate Comment</div>
+              <div class="row-group-small">
+                  <button id="comment-pre" class="button btn-sub">Pre-QA</button>
+                  <button id="comment-pos" class="button btn-sub">Pos-QA</button>
+              </div>
+              
+              <div class="sub-group-label">Report Comment</div>
+              <div class="row-group-small">
+                  <button id="report-comment-pre" class="button btn-sub">Report Pre</button>
+                  <button id="report-comment-pos" class="button btn-sub">Report Pos</button>
+              </div>
+          </div>
+
+      </div>
+    </div> */
