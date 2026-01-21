@@ -1,10 +1,8 @@
 
 (() => {
-  console.log('Open All Links v2.2.5 (Content mode) - margins + robust outside notice + fixes');
-
+  console.log('Open All Links v2.2.6 (Content mode) – generic en detection in cc-lc, margins + robust outside notice + fixes');
   const existing = document.getElementById('open-all-links__overlay');
   if (existing) existing.remove();
-
   try {
     const contentRoots = Array.from(
       document.querySelectorAll([
@@ -34,6 +32,7 @@
 
     const blockedHosts = new Set(['w3.ibm.com','apps.w3.ibm.com']);
     const localePrefix = /^\/[a-z]{2}-[a-z]{2}\//i;
+
     const inArticleContext = (a) => !!a.closest([
       '.cms-richtext', '.leadspace-article', '.table-of-contents', '.article-content-slot', '.body-article-8', '.content-page .container'
     ].join(','));
@@ -48,10 +47,8 @@
       if (a.closest('[role="navigation"], [role="banner"], [role="contentinfo"]')) return false;
       if (a.closest('.video-modal-overlay, .page-modal-wrapper')) return false;
       if (a.closest('.share-module, .cds-btn--share-module')) return false;
-
       const style = window.getComputedStyle(a);
       if (style.display === 'none' || style.visibility === 'hidden') return false;
-
       let u; try { u = new URL(a.href); } catch { return false; }
       if (blockedHosts.has(u.hostname)) return false;
       if (!inArticleContext(a)) return false;
@@ -61,6 +58,17 @@
 
     const seen = new Set();
     const links = [];
+
+    // Helper: detect cc-lc with any 'en' side (en-xx or xx-en)
+    const ccLcHasEN = (pathname) => {
+      const m = pathname.match(/\/([a-z]{2})-([a-z]{2})(?=\/|$)/i);
+      if (!m) return false;
+      const [, cc, lc] = m;
+      return cc.toLowerCase() === 'en' || lc.toLowerCase() === 'en';
+    };
+
+    const enInQuery = (search) => /\b(?:lang|locale|lc|cc)=(?:en|en-[a-z]{2}|[a-z]{2}-en)\b/i.test(search || '');
+
     for (const a of rawLinks) {
       const url = a.href;
       if (!url || seen.has(url)) continue;
@@ -68,9 +76,10 @@
       const originalTarget = (a.getAttribute('target') || '').toLowerCase();
       const targetLabel = originalTarget === '_blank' ? 'New Tab' : 'Same Tab';
       const lowerUrl = url.toLowerCase();
-      const hasEnUs = /\/(us-en|en-us)\//i.test(lowerUrl);
+      let u; try { u = new URL(url); } catch { continue; }
+      const markLocale = ccLcHasEN(u.pathname) || enInQuery(u.search);
       const isInsecure = lowerUrl.startsWith('http://');
-      links.push({ url, targetLabel, markLocale: hasEnUs, isInsecure });
+      links.push({ url, targetLabel, markLocale, isInsecure });
     }
 
     const overlay = document.createElement('div');
@@ -102,9 +111,7 @@
     header.style.borderBottom = '1px solid #e0e0e0';
 
     const title = document.createElement('h3');
-
     title.textContent = 'Checking Links (cc-lc)';
-
     title.style.margin = '0';
     title.style.fontSize = '18px';
 
@@ -156,12 +163,11 @@
 
       linkEl.style.textDecoration = 'none';
       linkEl.style.cursor = 'pointer';
-
       linkEl.addEventListener('mouseover', () => (linkEl.style.textDecoration = 'underline'));
       linkEl.addEventListener('mouseout', () => (linkEl.style.textDecoration = 'none'));
 
       const meta = document.createElement('span');
-      meta.textContent = `  —  Target: ${targetLabel}`;
+      meta.textContent = ` — Target: ${targetLabel}`;
       meta.style.fontSize = '11px';
       meta.style.color = '#6f6f6f';
 
@@ -180,10 +186,7 @@
         /\blinks?\s+reside[s]?\s+outside\s+of\s+ibm\.com\b/,
         /\blinks?\s+reside[s]?\s+outside\s+of\s+<a[^>]*>\s*ibm\.com\s*<\/a>/
       ];
-      const matched =
-        patterns.some(rx => rx.test(textLC)) ||
-        patterns.some(rx => rx.test(htmlLC));
-
+      const matched = patterns.some(rx => rx.test(textLC)) || patterns.some(rx => rx.test(htmlLC));
       if (matched) {
         const warn = document.createElement('div');
         warn.textContent = 'Has text: link resides outside of ibm.com';
@@ -201,15 +204,6 @@
     footer.style.gap = '8px';
     footer.style.padding = '12px 16px 16px 16px';
 
-    const backBtn = document.createElement('button');
-    backBtn.textContent = '« Back to Menu';
-    backBtn.style.background = '#666';
-    backBtn.style.color = '#fff';
-    backBtn.style.border = 'none';
-    backBtn.style.borderRadius = '6px';
-    backBtn.style.padding = '8px 10px';
-    backBtn.style.cursor = 'pointer';
-
     const openAllBtn = document.createElement('button');
     openAllBtn.textContent = 'Open All Links';
     openAllBtn.style.background = 'linear-gradient(45deg, #3ABEF9, #3572EF)';
@@ -220,12 +214,11 @@
     openAllBtn.style.fontWeight = '600';
     openAllBtn.style.cursor = 'pointer';
 
-    // footer.appendChild(openAllBtn);
-
-    panel.appendChild(header);
+//    footer.appendChild(openAllBtn);
+  
+panel.appendChild(header);
     panel.appendChild(body);
     panel.appendChild(footer);
-
     overlay.appendChild(panel);
     document.body.appendChild(overlay);
 
@@ -237,6 +230,7 @@
       dlg.style.display = 'flex';
       dlg.style.alignItems = 'center';
       dlg.style.justifyContent = 'center';
+
       const box = document.createElement('div');
       box.style.background = '#fff';
       box.style.border = '1px solid #e0e0e0';
@@ -320,7 +314,6 @@
     }
     ['mousemove', 'keydown', 'click', 'scroll'].forEach(evt => overlay.addEventListener(evt, resetIdle));
     resetIdle();
-
   } catch (err) {
     console.error('Open All Links error:', err);
   }
