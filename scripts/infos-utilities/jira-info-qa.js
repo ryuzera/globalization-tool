@@ -64,8 +64,8 @@
     const line2 = "Globalization";
     const line3 = getText("#components-field");
     const line4 = getSpecificWordFromComment(); 
-    const line5 = getFirstName("#assignee-val");
-    const line6 = "";
+    const line5 = "";
+    const line6 = getFirstName("#assignee-val");;
     const line7 = getInterestedParty();
     const line8 = "No";
     const line9 = new Date().toISOString().split("T")[0]; // YYYY-MM-DD

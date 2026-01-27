@@ -142,8 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function applyRole(role) {
         if (role === 'dev') {
-            // Se houver lógica específica para esconder/mostrar botões baseados em role, aplique aqui.
-            // Por enquanto, mostra tudo.
+
         } 
     }
 
@@ -157,7 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         lines.forEach(line => {
             let clean = line.trim();
-            // Tenta decodificar, se falhar, ignora
             try { clean = decodeURIComponent(clean); } catch(e) { return; }
             if(!clean) return;
 
@@ -236,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return { pages: foundPages, xfrags: foundXFrags };
     }
 
-    // --- RENDERER (Desenha a tela) ---
+    // --- RENDERER ---
     function renderResults(pages, xfrags, savedPages = null, savedXFrags = null) {
         pagesListContainer.innerHTML = '';
         pages.forEach(link => {
@@ -634,40 +632,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const scripts = [
-        { id: "copy-urls", file: "urls.js", msg: "URLs Copied!" },
-        { id: "copy-infos", file: "jira-info-qa.js", msg: "Infos Copied!" },
-        { id: "copy-infos-self", file: "jira-info-self.js", msg: "Infos Copied!" },
-        { id: "comment-pre", file: "comment-urls-pre.js", msg: "Comment Generated!" },
-        { id: "comment-pos", file: "comment-urls-pos.js", msg: "Comment Generated!" },
-        { id: "report-comment-pre", file: "report-comment-pre.js", msg: "Report Generated!" },
-        { id: "report-comment-pos", file: "report-comment-pos.js", msg: "Report Generated!" },
-        { id: "copy-date", file: "copy-date.js", msg: "Date Copied!" }
+        { id: "copy-urls", file: "scripts/infos-utilities/urls.js", msg: "URLs Copied!" },
+        { id: "copy-infos", file: "scripts/infos-utilities/jira-info-qa.js", msg: "Infos Copied!" },
+        { id: "copy-infos-self", file: "scripts/infos-utilities/jira-info-self.js", msg: "Infos Copied!" },
+        { id: "comment-pre", file: "scripts/jira-comments/comment-urls-pre.js", msg: "Comment Generated!" },
+        { id: "comment-pos", file: "scripts/jira-comments/comment-urls-pos.js", msg: "Comment Generated!" },
+        { id: "report-comment-pre", file: "scripts/jira-comments/report-comment-pre.js", msg: "Report Generated!" },
+        { id: "report-comment-pos", file: "scripts/jira-comments/report-comment-pos.js", msg: "Report Generated!" },
+        { id: "copy-date", file: "scripts/infos-utilities/copy-date.js", msg: "Date Copied!" }
     ];
 
     scripts.forEach(s => {
         const btn = document.getElementById(s.id);
-        if(btn) {
-            const originalText = btn.textContent;
+        if(!btn) return;
 
-            btn.addEventListener("click", () => {
-                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                    if(!tabs[0]) return;
+        const originalText = btn.textContent;
 
-                    chrome.scripting.executeScript({ 
-                        target: { tabId: tabs[0].id }, 
-                        files: [s.file] 
-                    }, () => {
+        btn.onclick = () => { // Usando onclick direto para testar
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if(!tabs[0]) return;
+
+                chrome.scripting.executeScript({ 
+                    target: { tabId: tabs[0].id }, 
+                    files: [s.file] 
+                }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error("ERRO:", chrome.runtime.lastError.message);
+                        btn.textContent = "Error";
+                    } else {
                         btn.textContent = s.msg;
                         btn.classList.add('success'); 
-
                         setTimeout(() => { 
                             btn.textContent = originalText; 
                             btn.classList.remove('success');
-                        }, 500);
-                    });
+                        }, 100);
+                    }
                 });
             });
-        }
+        };
     });
 
     const btnPublish = document.getElementById('publish');
@@ -677,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btnPublish.textContent = "...";
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if(!tabs[0]) return;
-                chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["publish.js"] }, () => {
+                chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["scripts/main/publish.js"] }, () => {
                     setTimeout(() => { btnPublish.textContent = originalText; }, 0);
                 });
             });
@@ -691,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btnOpenUrls.textContent = "...";
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if(!tabs[0]) return;
-                chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["open-urls.js"] }, () => {
+                chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["scripts/main/open-urls.js"] }, () => {
                     window.close(); 
                 });
             });
