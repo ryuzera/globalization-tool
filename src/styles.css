@@ -343,6 +343,10 @@ textarea {
     background: linear-gradient(45deg, #3a3a3a, #191919);
 }
 
+.btn-secondary {
+    background: linear-gradient(45deg, #009b62, #217e83);
+}
+
 .btn-sub {
     background: #fff;
     color: #444;
@@ -367,6 +371,8 @@ textarea {
     background: #fff5f5;
     border-color: #ff9999;
 }
+
+
 
 /* Minimalist Button (Tracking Sheet) */
 .btn-minimal {

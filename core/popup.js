@@ -639,7 +639,8 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: "comment-pos", file: "scripts/jira-comments/comment-urls-pos.js", msg: "Comment Generated!" },
         { id: "report-comment-pre", file: "scripts/jira-comments/report-comment-pre.js", msg: "Report Generated!" },
         { id: "report-comment-pos", file: "scripts/jira-comments/report-comment-pos.js", msg: "Report Generated!" },
-        { id: "copy-date", file: "scripts/infos-utilities/copy-date.js", msg: "Date Copied!" }
+        { id: "copy-date", file: "scripts/infos-utilities/copy-date.js", msg: "Date Copied!" },
+        { id: "check-images", file: "scripts/main/check-images.js", msg: "Date Copied!" }
     ];
 
     scripts.forEach(s => {
@@ -694,6 +695,22 @@ document.addEventListener('DOMContentLoaded', function() {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if(!tabs[0]) return;
                 chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["scripts/main/open-urls.js"] }, () => {
+                    window.close(); 
+                });
+            });
+        });
+    }
+
+    const btnCheckImages = document.getElementById('check-images');
+    if (btnCheckImages) {
+        btnCheckImages.addEventListener("click", () => {
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (!tabs[0]) return;
+                chrome.scripting.executeScript({ 
+                    target: { tabId: tabs[0].id }, 
+                    files: ["scripts/utils/check-images-aem.js"] 
+                }, () => {
+                    // ESTA LINHA FECHA O POPUP DA EXTENSÃO AUTOMATICAMENTE
                     window.close(); 
                 });
             });
