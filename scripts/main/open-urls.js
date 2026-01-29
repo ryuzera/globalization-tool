@@ -196,7 +196,7 @@
       padding: '10px 20px', fontWeight: '600', cursor: 'pointer', width: '100%'
     });
     
-    // footer.appendChild(openAllBtn);
+    footer.appendChild(openAllBtn);
 
     panel.appendChild(header);
     panel.appendChild(body);
