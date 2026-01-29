@@ -28,7 +28,6 @@
       '.article-content-slot', '.body-article-8', '.content-page .container'
     ].join(','));
 
-    // --- Locale Detection Helpers ---
     const ccLcHasEN = (pathname) => {
       const m = pathname.match(/\/([a-z]{2})[-_]([a-z]{2})(?=\/|$)/i);
       if (!m) return false;
@@ -60,16 +59,31 @@
     const seen = new Set();
     const links = [];
 
+    const getNormalizedUrl = (urlString) => {
+      try {
+        const u = new URL(urlString);
+        const normalizedPath = u.pathname.replace(/\/([a-z]{2}([-_][a-z]{2,3})?)\//i, '/');
+        u.searchParams.sort();
+        return `${u.hostname}${normalizedPath}${u.search}`;
+      } catch (e) {
+        return urlString;
+      }
+    };
+
     for (const a of rawLinks) {
       const url = a.href;
-      if (!url || seen.has(url)) continue;
-      seen.add(url);
+      if (!url) continue;
+
+      const normalized = getNormalizedUrl(url);
+      if (seen.has(normalized)) continue; 
+      seen.add(normalized);
 
       let u; try { u = new URL(url); } catch { continue; }
       
       const isIBM = u.hostname.endsWith('ibm.com') && u.hostname !== 'ibm.webcasts.com';
       
-      const hasEnLocale = ccLcHasEN(u.pathname) || enInQuery(u.search) || url.toLowerCase().includes('/en/');
+      const hasEnLocale = ccLcHasEN(u.pathname) || enInQuery(u.search);
+      
       const targetLabel = (a.getAttribute('target') || '').toLowerCase() === '_blank' ? 'New Tab' : 'Same Tab';
       const isInsecure = url.toLowerCase().startsWith('http://');
 
@@ -77,13 +91,8 @@
       let note = '';
 
       if (hasEnLocale) {
-        if (isIBM) {
-          status = 'warning';
-          note = 'IBM link with EN locale';
-        } else {
-          status = 'error';
-          note = 'EXTERNAL link with EN locale';
-        }
+        status = isIBM ? 'warning' : 'error';
+        note = `${isIBM ? 'IBM' : 'EXTERNAL'} link with EN locale in ibm.com`;
       } else if (isInsecure) {
         status = 'error';
         note = 'INSECURE HTTP LINK';
