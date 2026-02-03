@@ -172,13 +172,13 @@ document.addEventListener('DOMContentLoaded', function () {
             try { clean = decodeURIComponent(clean); } catch (e) { return; }
             if (!clean) return;
 
-            // FILTROS: Jira e Box
-            if (clean.includes('box.com') || clean.includes('jsw.ibm.com') || clean.includes('jira')) return;
+            // FILTROS: Jira, Box, Adobe Experience Cloud
+            if (clean.includes('box.com') || clean.includes('jsw.ibm.com') || clean.includes('jira') || clean.includes('experience.adobe.com')) return;
 
             if (clean.match(/^https?:\/\//)) {
                 try {
                     const urlObj = new URL(clean);
-                    if (urlObj.hostname.includes('jsw.ibm.com') || urlObj.hostname.includes('jira')) return;
+                    if (urlObj.hostname.includes('jsw.ibm.com') || urlObj.hostname.includes('jira') || urlObj.hostname.includes('experience.adobe.com')) return;
                     clean = urlObj.pathname;
                 } catch (e) { return; }
             }
@@ -235,6 +235,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             clean = clean.replace('//', '/');
             if (!clean.startsWith('/')) clean = '/' + clean;
+
+            if (clean === '/.html' || clean.length < 3) return;
 
             if (isXFrag) {
                 if (!foundXFrags.includes(clean)) foundXFrags.push(clean);
