@@ -1,5 +1,4 @@
 (() => {
-  console.log('Open All Links v2.4.0 – Locale & Compliance Audit');
   const existing = document.getElementById('open-all-links__overlay');
   if (existing) existing.remove();
 
@@ -85,40 +84,30 @@
     for (const a of rawLinks) {
       const url = a.href;
       if (!url) continue;
-
       const normalized = getNormalizedUrl(url);
       if (seen.has(normalized)) continue; 
       seen.add(normalized);
-
       let u; try { u = new URL(url); } catch { continue; }
-      
       const isIBM = u.hostname.endsWith('ibm.com') && u.hostname !== 'ibm.webcasts.com';
       const hasEnLocale = ccLcHasEN(u.pathname) || enInQuery(u.search);
       const invalidLocale = isInvalidLocale(u.pathname);
-      
       const targetLabel = (a.getAttribute('target') || '').toLowerCase() === '_blank' ? 'New Tab' : 'Same Tab';
       const isInsecure = url.toLowerCase().startsWith('http://');
-
       let status = 'ok'; 
       let note = '';
-
       if (hasEnLocale) {
         status = isIBM ? 'warning' : 'error';
         note = `${isIBM ? 'IBM' : 'EXTERNAL'} link with EN locale`;
-      } 
-      else if (invalidLocale) {
+      } else if (invalidLocale) {
         status = 'warning';
         note = `Non-compliant locale detected`;
-      }
-      else if (isInsecure) {
+      } else if (isInsecure) {
         status = 'error';
         note = 'INSECURE HTTP LINK';
       }
-
       links.push({ url, targetLabel, status, note });
     }
 
-    // --- Interface Visual ---
     const overlay = document.createElement('div');
     overlay.id = 'open-all-links__overlay';
     Object.assign(overlay.style, {
@@ -156,12 +145,10 @@
     links.forEach(({ url, targetLabel, status, note }) => {
       const li = document.createElement('li');
       li.style.marginBottom = '12px';
-
       const row = document.createElement('div');
       row.style.display = 'flex';
       row.style.alignItems = 'baseline';
       row.style.gap = '8px';
-
       const linkEl = document.createElement('a');
       linkEl.href = url;
       linkEl.target = '_blank';
@@ -198,7 +185,6 @@
         noteEl.textContent = `⚠️ ${note}`;
         li.appendChild(noteEl);
       }
-
       list.appendChild(li);
     });
 
@@ -206,17 +192,35 @@
 
     const footer = document.createElement('div');
     footer.style.padding = '16px';
+    const openAllBtn = document.createElement('button');
+    openAllBtn.textContent = `Open all ${links.length} links`;
+    Object.assign(openAllBtn.style, {
+      background: '#0f62fe', color: '#fff', border: 'none', borderRadius: '4px',
+      padding: '10px 20px', fontWeight: '600', cursor: 'pointer', width: '100%'
+    });
+
+    const cleanup = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
+
+    openAllBtn.addEventListener('click', () => {
+      if (confirm(`Are you sure you want to open all ${links.length} links?`)) {
+        links.forEach((l, i) => {
+          setTimeout(() => window.open(l.url, '_blank', 'noopener'), i * 200);
+        });
+        cleanup();
+      }
+    });
+    
+    footer.appendChild(openAllBtn);
     panel.appendChild(header);
     panel.appendChild(body);
     panel.appendChild(footer);
     overlay.appendChild(panel);
     document.body.appendChild(overlay);
 
-    const cleanup = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
     closeBtn.addEventListener('click', cleanup);
     window.addEventListener('keydown', (e) => { if (e.key === 'Escape') cleanup(); }, { once: true });
 
   } catch (err) {
-    console.error('Open All Links error:', err);
+    console.error('Audit Tool Error:', err);
   }
 })();
