@@ -13,7 +13,7 @@
   "action": {
     "default_popup": "src/popup.html",
     "default_icon": {
-      "128": "icons/globe.png"
+      "128": "icons/globe-adm.png"
     }
   },
   "background": {
@@ -23,15 +23,15 @@
     "<all_urls>"
   ],
   "icons": {
-    "16": "icons/globe.png",
-    "48": "icons/globe.png",
-    "128": "icons/globe.png"
+    "16": "icons/globe-adm.png",
+    "48": "icons/globe-adm.png",
+    "128": "icons/globe-adm.png"
   },
   "web_accessible_resources": [
     {
       "resources": [
-        "icons/globe.png",
-        "icons/globe-off.png",
+        "icons/globe-adm.png",
+        "icons/globe-adm-off.png",
         "main/open-urls.js",
         "main/publish.js",
         "scripts/info-utilities/copy-date.js"
