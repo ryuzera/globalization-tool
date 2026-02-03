@@ -1,5 +1,4 @@
 (function () {
-  // 1. LIMPEZA TOTAL
   const existing = document.getElementById('image-checker-overlay');
   if (existing) {
     existing.remove();
@@ -10,8 +9,16 @@
   const seenPaths = new Set();
   const videoExtensions = /\.(mp4|webm|ogg|mov|m4v)$/i;
   
-  // Prefixo para o link do DAM (AEM Author)
   const damPrefix = "https://prod-cloud-author.aem.ibm.net/assetdetails.html";
+  
+  const blockedDomains = [
+    'bat.bing.com',
+    'videoamp.com',
+    'google-analytics.com',
+    'doubleclick.net',
+    'facebook.com/tr',
+    't.co'
+  ];
 
   function processElement(el, type) {
     if (el.closest('#image-checker-overlay') || el.id === 'floating-zoom-container') return;
@@ -29,7 +36,9 @@
       alt = el.getAttribute('aria-label') || '[CSS Background]';
     }
 
-    if (src && src.startsWith('http') && !videoExtensions.test(src.split('?')[0])) {
+    const isBlocked = blockedDomains.some(domain => src.includes(domain));
+
+    if (src && src.startsWith('http') && !videoExtensions.test(src.split('?')[0]) && !isBlocked) {
       try {
         const urlObj = new URL(src);
         const cleanPath = urlObj.pathname;
@@ -65,7 +74,6 @@
 
   findImages(document);
 
-  // 2. INTERFACE
   const overlay = document.createElement('div');
   overlay.id = 'image-checker-overlay';
   overlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:2147483647; display:flex; align-items:center; justify-content:center; font-family:sans-serif;";
