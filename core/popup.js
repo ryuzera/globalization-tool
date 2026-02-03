@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
-    
+document.addEventListener('DOMContentLoaded', function () {
+
     // --- CONFIGURATION ---
     const lmLocales = ["zh_cn", "fr", "de", "it", "ja", "ko_kr", "pt_br", "es_es", "es_la", "id", "ar"];
     const previewLocales = ["cn/zh", "fr/fr", "de/de", "it/it", "jp/ja", "kr/ko", "br/pt", "es/es", "mx/es", "id/id", "sa/ar", "ae/ar", "qa/ar"];
@@ -10,21 +10,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const loaderView = document.getElementById('loader-view');
     const stepInput = document.getElementById('step-input');
     const stepSelection = document.getElementById('step-selection');
-    
+
     const qaButtons = document.getElementById('qa-buttons');
     const openLoaderBtn = document.getElementById('open-loader');
     const rawInput = document.getElementById('rawInput');
-    
+
     const ticketContainer = document.getElementById('ticket-container');
     const ticketDisplay = document.getElementById('ticket-display');
     const btnClearTicket = document.getElementById('btn-clear-ticket');
 
-    const btnTsHeader = document.getElementById('btn-ts-header'); 
-    const btnTrackingMain = document.getElementById('btn-tracking-main'); 
+    const btnTsHeader = document.getElementById('btn-ts-header');
+    const btnHeaderBack = document.getElementById('btn-header-back');
+    const btnTrackingMain = document.getElementById('btn-tracking-main');
 
     const localeContainer = document.getElementById('localeContainer');
     const modeSelect = document.getElementById('mode-select');
-    
+
     const chkEnSource = document.getElementById('chk-en-source');
     const chkEnLive = document.getElementById('chk-en-live');
     const lblEnLive = document.getElementById('lbl-en-live');
@@ -49,25 +50,37 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!btnElement) return;
         const originalText = btnElement.textContent;
         btnElement.style.opacity = "0.7";
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            if(!tabs[0]) { btnElement.style.opacity = "1"; return; }
-            chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                func: () => {
-                    const links = Array.from(document.querySelectorAll('a'));
-                    const boxLink = links.find(a => a.href && (a.href.includes('box.com') || a.href.includes('ibm.box.com')));
-                    if(boxLink) return boxLink.href;
-                    const bodyText = document.body.innerText;
-                    const match = bodyText.match(/https:\/\/(ibm\.)?(.+\.)?box\.com\/s\/[a-zA-Z0-9]+/);
-                    return match ? match[0] : null;
-                }
-            }, (results) => {
+
+        chrome.storage.local.get(['savedTrackingSheetUrl'], (data) => {
+            if (data.savedTrackingSheetUrl) {
+                chrome.tabs.create({ url: data.savedTrackingSheetUrl });
                 btnElement.style.opacity = "1";
-                if (results && results[0] && results[0].result) {
-                    chrome.tabs.create({ url: results[0].result });
-                } else {
-                    alert("No Box Tracking Sheet link found on this page.");
-                }
+                return;
+            }
+
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (!tabs[0]) { btnElement.style.opacity = "1"; return; }
+                chrome.scripting.executeScript({
+                    target: { tabId: tabs[0].id },
+                    func: () => {
+                        const links = Array.from(document.querySelectorAll('a'));
+                        const boxLink = links.find(a => a.href && (a.href.includes('box.com') || a.href.includes('ibm.box.com')));
+                        if (boxLink) return boxLink.href;
+                        const bodyText = document.body.innerText;
+                        const match = bodyText.match(/https:\/\/(ibm\.)?(.+\.)?box\.com\/s\/[a-zA-Z0-9]+/);
+                        return match ? match[0] : null;
+                    }
+                }, (results) => {
+                    btnElement.style.opacity = "1";
+                    if (results && results[0] && results[0].result) {
+                        // Auto-save if found here too
+                        const foundUrl = results[0].result;
+                        chrome.storage.local.set({ savedTrackingSheetUrl: foundUrl });
+                        chrome.tabs.create({ url: foundUrl });
+                    } else {
+                        alert("No Box Tracking Sheet link found on this page.");
+                    }
+                });
             });
         });
     }
@@ -79,13 +92,13 @@ document.addEventListener('DOMContentLoaded', function() {
             tabXFrags.classList.remove('active');
             wrapperPages.classList.add('active');
             wrapperXFrags.classList.remove('active');
-            btnLaunch.style.background = "#0f62fe"; 
+            btnLaunch.style.background = "#0f62fe";
         } else {
             tabPages.classList.remove('active');
             tabXFrags.classList.add('active');
             wrapperPages.classList.remove('active');
             wrapperXFrags.classList.add('active');
-            btnLaunch.style.background = "#da1e28"; 
+            btnLaunch.style.background = "#da1e28";
         }
     }
 
@@ -106,12 +119,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleRoleSwitch(disable) {
         const switcher = document.querySelector('.role-switch');
-        if(disable) switcher.classList.add('disabled');
+        if (disable) switcher.classList.add('disabled');
         else switcher.classList.remove('disabled');
     }
 
     function renderLocales(mode, savedSelection = null) {
-        if(!localeContainer) return;
+        if (!localeContainer) return;
         localeContainer.innerHTML = '';
         const listToRender = (mode.includes('lm')) ? lmLocales : previewLocales;
         listToRender.forEach(loc => {
@@ -143,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyRole(role) {
         if (role === 'dev') {
 
-        } 
+        }
     }
 
     // --- ANALYZER (Lógica Pura - Sem UI) ---
@@ -156,8 +169,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         lines.forEach(line => {
             let clean = line.trim();
-            try { clean = decodeURIComponent(clean); } catch(e) { return; }
-            if(!clean) return;
+            try { clean = decodeURIComponent(clean); } catch (e) { return; }
+            if (!clean) return;
 
             // FILTROS: Jira e Box
             if (clean.includes('box.com') || clean.includes('jsw.ibm.com') || clean.includes('jira')) return;
@@ -171,24 +184,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             clean = clean.replace(/^(https?:\/\/)?(www\.)?ibm\.com/, "")
-                         .replace(/^(https?:\/\/)?prod-cloud-author\.aem\.ibm\.net/, "")
-                         .replace(/^(https?:\/\/)?author-.*\.adobeaemcloud\.com/, "");
-            
+                .replace(/^(https?:\/\/)?prod-cloud-author\.aem\.ibm\.net/, "")
+                .replace(/^(https?:\/\/)?author-.*\.adobeaemcloud\.com/, "");
+
             // Segurança final
             if (clean.includes('box.com') || clean.includes('jsw.ibm.com') || clean.includes('browse/')) return;
 
             const isXFrag = clean.includes('/experience-fragments/');
-            
-            if(clean.includes('?')) clean = clean.split('?')[0];
-            if(clean.includes('#')) clean = clean.split('#')[0];
-            if(!clean.endsWith('.html')) clean = clean + '.html';
-            
+
+            if (clean.includes('?')) clean = clean.split('?')[0];
+            if (clean.includes('#')) clean = clean.split('#')[0];
+            if (!clean.endsWith('.html')) clean = clean + '.html';
+
             clean = clean.replace(/^\/editor\.html/, '')
-                         .replace(/^\/mnt\/overlay\/wcm\/core\/content\/sites\/properties\.html/, '');
+                .replace(/^\/mnt\/overlay\/wcm\/core\/content\/sites\/properties\.html/, '');
 
             // Lógica de Âncora (Anchor)
             let processed = false;
-            
+
             // A. Language Masters
             const lmRegex = /.*\/language-masters\/[a-z0-9_-]+\//;
             if (lmRegex.test(clean)) {
@@ -219,14 +232,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     processed = true;
                 }
             }
-            
+
             clean = clean.replace('//', '/');
-            if(!clean.startsWith('/')) clean = '/' + clean;
+            if (!clean.startsWith('/')) clean = '/' + clean;
 
             if (isXFrag) {
-                if(!foundXFrags.includes(clean)) foundXFrags.push(clean);
+                if (!foundXFrags.includes(clean)) foundXFrags.push(clean);
             } else {
-                if(!foundPages.includes(clean)) foundPages.push(clean);
+                if (!foundPages.includes(clean)) foundPages.push(clean);
             }
         });
 
@@ -263,16 +276,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- INITIALIZATION ---
     chrome.storage.local.get([
-        'userRole', 'savedLinks', 'savedTicket', 'currentScreen', 'currentStep', 
+        'userRole', 'savedLinks', 'savedTicket', 'currentScreen', 'currentStep',
         'linkMode', 'enSource', 'enLive', 'activeTab', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'accordionsState'
     ], (data) => {
-        
+
         if (data.userRole) {
             const radio = document.querySelector(`input[name="role"][value="${data.userRole}"]`);
-            if(radio) { radio.checked = true; applyRole(data.userRole); }
+            if (radio) { radio.checked = true; applyRole(data.userRole); }
         }
-        
-        if (data.linkMode) { modeSelect.value = data.linkMode; } 
+
+        if (data.linkMode) { modeSelect.value = data.linkMode; }
         else { modeSelect.value = 'locale-preview'; }
         renderLocales(modeSelect.value, data.selectedLocales);
 
@@ -305,13 +318,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (screen === 'loader') {
             menuView.style.display = 'none';
             loaderView.style.display = 'block';
+            if (btnHeaderBack) btnHeaderBack.style.display = 'block';
             toggleRoleSwitch(true);
 
             if (step === 'selection' && data.savedLinks && data.savedLinks.trim() !== '') {
                 const results = analyzeLinks(data.savedLinks);
                 if (results) {
                     renderResults(results.pages, results.xfrags, data.selectedPages, data.selectedXFrags);
-                    
+
                     let targetTab = 'pages';
                     if (data.activeTab) {
                         targetTab = data.activeTab;
@@ -335,8 +349,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- EVENT LISTENERS ---
 
-    if(btnTsHeader) btnTsHeader.addEventListener('click', () => openTrackingSheet(btnTsHeader));
-    if(btnTrackingMain) btnTrackingMain.addEventListener('click', () => openTrackingSheet(btnTrackingMain));
+    if (btnTsHeader) btnTsHeader.addEventListener('click', () => openTrackingSheet(btnTsHeader));
+    if (btnTrackingMain) btnTrackingMain.addEventListener('click', () => openTrackingSheet(btnTrackingMain));
 
     tabPages.addEventListener('click', () => switchTab('pages'));
     tabXFrags.addEventListener('click', () => switchTab('xfrags'));
@@ -352,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
     modeSelect.addEventListener('change', (e) => {
         const newMode = e.target.value;
         chrome.storage.local.set({ linkMode: newMode });
-        renderLocales(newMode, null); 
+        renderLocales(newMode, null);
         chrome.storage.local.remove('selectedLocales');
     });
 
@@ -375,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     rawInput.addEventListener('input', () => {
         chrome.storage.local.set({ savedLinks: rawInput.value });
-        if(rawInput.value.trim() === "") {
+        if (rawInput.value.trim() === "") {
             chrome.storage.local.remove(['selectedPages', 'selectedXFrags']);
         }
         const msg = document.getElementById('auto-save-msg');
@@ -386,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearAll() {
         rawInput.value = '';
         updateTicketUI(null);
-        chrome.storage.local.remove(['savedLinks', 'savedTicket', 'selectedLocales', 'selectedPages', 'selectedXFrags']);
+        chrome.storage.local.remove(['savedLinks', 'savedTicket', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'savedTrackingSheetUrl']);
         stepInput.style.display = 'block';
         stepSelection.style.display = 'none';
         chrome.storage.local.set({ currentScreen: 'loader', currentStep: 'input' });
@@ -395,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('btnClear').addEventListener('click', clearAll);
-    if(btnClearTicket) btnClearTicket.addEventListener('click', clearAll);
+    if (btnClearTicket) btnClearTicket.addEventListener('click', clearAll);
 
     // --- ANALYZE LOGIC ---
     const btnParse = document.getElementById('btnParse');
@@ -412,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         renderResults(results.pages, results.xfrags, null, null);
 
-        if(results.xfrags.length > 0 && results.pages.length === 0) {
+        if (results.xfrags.length > 0 && results.pages.length === 0) {
             switchTab('xfrags');
         } else {
             switchTab('pages');
@@ -422,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- SELECT ALL TOGGLES ---
-    if(toggleLocales) {
+    if (toggleLocales) {
         toggleLocales.onclick = () => {
             const boxes = document.querySelectorAll('.chk-locale');
             const allChecked = Array.from(boxes).every(b => b.checked);
@@ -433,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    if(togglePages) {
+    if (togglePages) {
         togglePages.onclick = () => {
             const boxes = pagesListContainer.querySelectorAll('.chk-link');
             const allChecked = Array.from(boxes).every(b => b.checked);
@@ -444,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    if(toggleXFrags) {
+    if (toggleXFrags) {
         toggleXFrags.onclick = () => {
             const boxes = xfragsListContainer.querySelectorAll('.chk-link');
             const allChecked = Array.from(boxes).every(b => b.checked);
@@ -489,26 +503,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if ((selectedLocales.length === 0 && !openEnSource) || totalLinks === 0) {
             return alert("Select at least 1 locale and 1 link (Page or XFrag).");
         }
-        
+
         let totalTabs = (selectedLocales.length * totalLinks);
         if (openEnSource) totalTabs += totalLinks;
 
-        if(totalTabs > 30 && !confirm(`Opening ${totalTabs} tabs. Confirm?`)) return;
-        if(!chrome.tabGroups) return alert("Missing tabGroups permission.");
+        if (totalTabs > 30 && !confirm(`Opening ${totalTabs} tabs. Confirm?`)) return;
+        if (!chrome.tabGroups) return alert("Missing tabGroups permission.");
 
         const buildUrl = (path, localeCode, isEnSource, isLive) => {
             const baseUrl = "https://prod-cloud-author.aem.ibm.net";
-            const isXFrag = selectedXFrags.includes(path); 
+            const isXFrag = selectedXFrags.includes(path);
             const rootPrefix = isXFrag ? "/content/experience-fragments/adobe-cms" : "/content/adobe-cms";
 
             if (isEnSource && isLive) {
-                if(isXFrag) return null; 
+                if (isXFrag) return null;
                 return `https://www.ibm.com/us-en${path}`;
             }
 
             let midPath = "";
             if (isEnSource) {
-                 midPath = mode.includes('lm') ? "/language-masters/en" : "/us/en";
+                midPath = mode.includes('lm') ? "/language-masters/en" : "/us/en";
             } else {
                 midPath = mode.includes('lm') ? `/language-masters/${localeCode}` : `/${localeCode}`;
             }
@@ -528,16 +542,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             for (const path of allSelected) {
                 const url = buildUrl(path, 'en', true, isLiveMode);
-                if(url) {
+                if (url) {
                     const tab = await chrome.tabs.create({ url: url, active: false });
                     tabIds.push(tab.id);
                 }
             }
             if (tabIds.length > 0) {
                 const groupId = await chrome.tabs.group({ tabIds: tabIds });
-                await chrome.tabGroups.update(groupId, { 
-                    title: isLiveMode ? "EN (LIVE)" : "EN (SOURCE)", 
-                    color: "grey" 
+                await chrome.tabGroups.update(groupId, {
+                    title: isLiveMode ? "EN (LIVE)" : "EN (SOURCE)",
+                    color: "grey"
                 });
             }
         }
@@ -549,27 +563,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
             for (const path of allSelected) {
                 const url = buildUrl(path, locCode, false, false);
-                if(url) {
+                if (url) {
                     const tab = await chrome.tabs.create({ url: url, active: false });
                     tabIds.push(tab.id);
                 }
             }
             if (tabIds.length > 0) {
                 const groupId = await chrome.tabs.group({ tabIds: tabIds });
-                await chrome.tabGroups.update(groupId, { 
-                    title: locCode.toUpperCase(), 
-                    color: groupColors[i % groupColors.length] 
+                await chrome.tabGroups.update(groupId, {
+                    title: locCode.toUpperCase(),
+                    color: groupColors[i % groupColors.length]
                 });
             }
         }
     });
 
     const btnImport = document.getElementById('btn-import-jira');
-    if(btnImport) {
+    if (btnImport) {
         btnImport.addEventListener('click', () => {
             btnImport.textContent = "...";
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if(!tabs[0]) return;
+                if (!tabs[0]) return;
                 chrome.scripting.executeScript({
                     target: { tabId: tabs[0].id },
                     func: () => {
@@ -580,19 +594,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         else if (breadcrumb) ticket = breadcrumb.innerText;
                         else {
                             const match = window.location.pathname.match(/([A-Z]+-\d+)/);
-                            if(match) ticket = match[1];
+                            if (match) ticket = match[1];
                         }
                         const descEl = document.querySelector("#description-val");
                         const descText = descEl ? descEl.innerText : document.body.innerText;
-                        return { ticket: ticket, text: descText };
+
+                        // Find Box Link (Persistence)
+                        const links = Array.from(document.querySelectorAll('a'));
+                        const boxLink = links.find(a => a.href && (a.href.includes('box.com') || a.href.includes('ibm.box.com')));
+                        let tsUrl = boxLink ? boxLink.href : null;
+                        if (!tsUrl) {
+                            const match = document.body.innerText.match(/https:\/\/(ibm\.)?(.+\.)?box\.com\/s\/[a-zA-Z0-9]+/);
+                            if (match) tsUrl = match[0];
+                        }
+
+                        return { ticket: ticket, text: descText, tsUrl: tsUrl };
                     }
                 }, (results) => {
                     btnImport.textContent = "Import Jira";
                     if (results && results[0] && results[0].result) {
                         const data = results[0].result;
-                        if(data.ticket) updateTicketUI(data.ticket);
+                        if (data.ticket) updateTicketUI(data.ticket);
+                        if (data.tsUrl) chrome.storage.local.set({ savedTrackingSheetUrl: data.tsUrl });
+
                         const urls = data.text.match(/https?:\/\/[^\s"']+/g) || [];
-                        if(urls.length > 0) {
+                        if (urls.length > 0) {
                             rawInput.value = urls.join('\n');
                             rawInput.dispatchEvent(new Event('input'));
                         } else {
@@ -606,13 +632,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    openLoaderBtn.addEventListener('click', () => { 
-        menuView.style.display = 'none'; 
+    openLoaderBtn.addEventListener('click', () => {
+        menuView.style.display = 'none';
         loaderView.style.display = 'block';
-        toggleRoleSwitch(true); 
-        
+        if (btnHeaderBack) btnHeaderBack.style.display = 'block';
+        toggleRoleSwitch(true);
+
         const currentRole = document.querySelector('input[name="role"]:checked').value;
-        if(currentRole === 'qa') {
+        if (currentRole === 'qa') {
             modeSelect.value = 'locale-preview';
         } else {
             modeSelect.value = 'lm-edit';
@@ -622,14 +649,34 @@ document.addEventListener('DOMContentLoaded', function() {
         saveNavState('loader', 'input');
     });
 
-    document.getElementById('btn-back').addEventListener('click', () => { 
-        loaderView.style.display = 'none'; 
+    document.getElementById('btn-back').addEventListener('click', () => {
+        loaderView.style.display = 'none';
         menuView.style.display = 'block';
         stepInput.style.display = 'block';
         stepSelection.style.display = 'none';
-        toggleRoleSwitch(false); 
+        if (btnHeaderBack) btnHeaderBack.style.display = 'none';
+        toggleRoleSwitch(false);
         saveNavState('menu', null);
     });
+
+    if (btnHeaderBack) {
+        btnHeaderBack.addEventListener('click', () => {
+            // Se estiver na tela Selection -> Volta para Input
+            if (stepSelection.style.display !== 'none') {
+                stepInput.style.display = 'block';
+                stepSelection.style.display = 'none';
+                saveNavState('loader', 'input');
+            }
+            // Se estiver na tela Input -> Volta para o Menu
+            else {
+                loaderView.style.display = 'none';
+                menuView.style.display = 'block';
+                btnHeaderBack.style.display = 'none';
+                toggleRoleSwitch(false);
+                saveNavState('menu', null);
+            }
+        });
+    }
 
     const scripts = [
         { id: "copy-urls", file: "scripts/infos-utilities/urls.js", msg: "URLs Copied!" },
@@ -645,26 +692,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     scripts.forEach(s => {
         const btn = document.getElementById(s.id);
-        if(!btn) return;
+        if (!btn) return;
 
         const originalText = btn.textContent;
 
         btn.onclick = () => { // Usando onclick direto para testar
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if(!tabs[0]) return;
+                if (!tabs[0]) return;
 
-                chrome.scripting.executeScript({ 
-                    target: { tabId: tabs[0].id }, 
-                    files: [s.file] 
+                chrome.scripting.executeScript({
+                    target: { tabId: tabs[0].id },
+                    files: [s.file]
                 }, () => {
                     if (chrome.runtime.lastError) {
                         console.error("ERRO:", chrome.runtime.lastError.message);
                         btn.textContent = "Error";
                     } else {
                         btn.textContent = s.msg;
-                        btn.classList.add('success'); 
-                        setTimeout(() => { 
-                            btn.textContent = originalText; 
+                        btn.classList.add('success');
+                        setTimeout(() => {
+                            btn.textContent = originalText;
                             btn.classList.remove('success');
                         }, 100);
                     }
@@ -674,12 +721,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const btnPublish = document.getElementById('publish');
-    if(btnPublish) {
+    if (btnPublish) {
         btnPublish.addEventListener("click", () => {
             const originalText = btnPublish.textContent;
             btnPublish.textContent = "...";
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if(!tabs[0]) return;
+                if (!tabs[0]) return;
                 chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["scripts/main/publish.js"] }, () => {
                     setTimeout(() => { btnPublish.textContent = originalText; }, 0);
                 });
@@ -688,14 +735,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const btnOpenUrls = document.getElementById('open-urls');
-    if(btnOpenUrls) {
+    if (btnOpenUrls) {
         btnOpenUrls.addEventListener("click", () => {
             const originalText = btnOpenUrls.textContent;
             btnOpenUrls.textContent = "...";
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if(!tabs[0]) return;
+                if (!tabs[0]) return;
                 chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["scripts/main/open-urls.js"] }, () => {
-                    window.close(); 
+                    window.close();
                 });
             });
         });
@@ -706,12 +753,12 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCheckImages.addEventListener("click", () => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (!tabs[0]) return;
-                chrome.scripting.executeScript({ 
-                    target: { tabId: tabs[0].id }, 
-                    files: ["scripts/utils/check-images-aem.js"] 
+                chrome.scripting.executeScript({
+                    target: { tabId: tabs[0].id },
+                    files: ["scripts/utils/check-images-aem.js"]
                 }, () => {
                     // ESTA LINHA FECHA O POPUP DA EXTENSÃO AUTOMATICAMENTE
-                    window.close(); 
+                    window.close();
                 });
             });
         });
@@ -720,7 +767,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- ACCORDION LOGIC (NOVA) ---
     const acc = document.getElementsByClassName("accordion");
     for (let i = 0; i < acc.length; i++) {
-        acc[i].addEventListener("click", function() {
+        acc[i].addEventListener("click", function () {
             this.classList.toggle("active");
             const panel = this.nextElementSibling;
             if (panel.style.maxHeight) {
@@ -730,8 +777,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             // Save state
             const openIndexes = [];
-            for(let j=0; j<acc.length; j++) {
-                if(acc[j].classList.contains("active")) openIndexes.push(j);
+            for (let j = 0; j < acc.length; j++) {
+                if (acc[j].classList.contains("active")) openIndexes.push(j);
             }
             chrome.storage.local.set({ accordionsState: openIndexes });
         });

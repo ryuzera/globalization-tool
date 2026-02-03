@@ -1,168 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="/src/styles.css">
-  <title>Globalization Suite</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/src/styles.css">
+    <title>Globalization Suite</title>
 </head>
+
 <body>
-  <div class="container">
-    
-    <div class="top-bar">
-        <div class="role-switch">
-            <label><input type="radio" name="role" value="qa" checked><span>QA</span></label>
-            <label><input type="radio" name="role" value="dev"><span>DEV</span></label>
-        </div>
-        
-        <div class="header-tools">
-            <b>Tracking Sheet:</b>
-            <button id="btn-ts-header" class="icon-btn" title="Open Tracking Sheet">📂</button>
-            <div id="ticket-container" class="ticket-container">
-                <span id="ticket-display" class="ticket-badge"></span>
-                <span id="btn-clear-ticket" class="ticket-clear-btn" title="Clear All">&times;</span>
+    <div class="container">
+
+        <div class="top-bar">
+            <div class="header-left">
+                <button id="btn-header-back" class="icon-btn-plain" style="display:none;" title="Back">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 14L2 8l6-6v4h6v4H8v4z" />
+                    </svg>
+                </button>
+                <div class="role-switch">
+                    <label><input type="radio" name="role" value="qa" checked><span>QA</span></label>
+                    <label><input type="radio" name="role" value="dev"><span>DEV</span></label>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div id="menu-view">
-      <h3>GLOBALIZATION SUITE</h3>
-      
-      <div class="primary-actions">
-          <button id="open-loader" class="button btn-highlight">
-              AEM Multi-Loader
-          </button>
-          
-          <div class="row-group">
-              <button id="open-urls" class="button btn-primary">Check CC-LC</button>
-              <button id="publish" class="button btn-dark pulse">Publish</button>
-              <button id="check-images" class="button btn-secondary">Check Images</button>
-          </div>
-      </div>
-
-      <button id="btn-tracking-main" class="btn-minimal">
-          📂 Open Tracking Sheet
-      </button>
-
-      <hr class="separator">
-
-      <div class="accordion-group">
-          
-          <button class="accordion">Info & Utilities</button>
-          <div class="panel">
-              <div class="row-group-small">
-                  <button id="copy-infos" class="button btn-sub">Copy Info (Pre)</button>
-                  <button id="copy-infos-self" class="button btn-sub">Copy Info (Self)</button>
-              </div>
-              <div class="row-group-small">
-                  <button id="copy-urls" class="button btn-sub">Copy URLs</button>
-                  <button id="copy-date" class="button btn-sub btn-date">Copy Date</button>
-              </div>
-          </div>
-
-          <button class="accordion">Jira Comments</button>
-          <div class="panel">
-              <div class="sub-group-label">Generate Comment</div>
-              <div class="row-group-small">
-                  <button id="comment-pre" class="button btn-sub">Pre-QA</button>
-                  <button id="comment-pos" class="button btn-sub">Pos-QA</button>
-              </div>
-              
-              <div class="sub-group-label">Report Comment</div>
-              <div class="row-group-small">
-                  <button id="report-comment-pre" class="button btn-sub">Report Pre</button>
-                  <button id="report-comment-pos" class="button btn-sub">Report Pos</button>
-              </div>
-          </div>
-
-      </div>
-    </div>
-
-    <div id="loader-view" style="display:none;">
-      <h3>AEM Multi-Loader</h3>
-      
-      <div id="step-input">
-        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-           <label>Public URLs (Pages or XFrags)</label>
-           <span id="auto-save-msg" style="font-size:9px; color:green;"></span>
-        </div>
-        <textarea id="rawInput" placeholder="Paste links here..."></textarea>
-        
-        <div class="controls-row">
-            <button id="btn-import-jira" class="btn-small" style="background:#009d9a; flex:2;">Import Jira</button>
-            <button id="btnClear" class="btn-small" style="background:#da1e28; flex:1;">Clear</button>
-            <button id="btnParse" class="btn-small" style="background:#0f62fe; flex:2;">Analyze &raquo;</button>
-        </div>
-      </div>
-
-      <div id="step-selection" style="display:none;">
-        <div class="mode-toggle-container">
-            <span style="font-size:11px; font-weight:bold; color:#555;">Mode:</span>
-            <select id="mode-select" style="width: 100%; padding: 5px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc;">
-                <option value="locale-preview">Locale Preview (Default QA)</option>
-                <option value="locale-edit">Locale Edit</option>
-                <option value="lm-edit">LM Edit (Default DEV)</option>
-                <option value="lm-preview">LM Preview</option>
-            </select>
-        </div>
-
-        <div id="en-source-wrapper" style="background: #f4f4f4; padding: 8px; border-radius: 4px; margin-top: 10px; border: 1px solid #e0e0e0;">
-            <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                <input type="checkbox" id="chk-en-source" style="margin-right: 8px; cursor: pointer;">
-                <label for="chk-en-source" style="font-size: 12px; color: #333; cursor: pointer; font-weight: bold;">
-                    Open English Source (EN)
-                </label>
-            </div>
-            <div style="display: flex; align-items: center; margin-left: 20px;">
-                <input type="checkbox" id="chk-en-live" style="margin-right: 8px; cursor: pointer;" disabled>
-                <label id="lbl-en-live" for="chk-en-live" style="font-size: 11px; color: #999; cursor: pointer;">
-                    Open as Live Link (www.ibm.com)
-                </label>
+            <div class="header-tools">
+                <div id="ticket-container" class="ticket-container">
+                    <span id="ticket-display" class="ticket-badge"></span>
+                    <span id="btn-clear-ticket" class="ticket-clear-btn" title="Clear All">&times;</span>
+                </div>
+                <button id="btn-ts-header" class="icon-btn" title="Open Tracking Sheet">📂</button>
             </div>
         </div>
 
-        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 5px; font-weight: bold;">
-            <div style="display: flex; align-items: center;">
-                Target Locales
-                <span id="locale-counter" style="margin-left: 5px; font-size: 0.9em; color: #666; font-weight: normal;">(0/0)</span>
-            </div>
-            <span id="toggleLocales" class="toggle-link" style="cursor: pointer; font-size: 0.8em; color: #0f62fe;">(Select All)</span>
-        </div>
-        <div class="locale-grid" id="localeContainer"></div>
+        <div id="menu-view">
+            <h3>GLOBALIZATION SUITE</h3>
 
-        <div class="tabs-container">
-            <button id="tab-pages" class="tab-btn tab-blue active">
-                Pages <span id="count-pages">(0)</span>
+            <div class="primary-actions">
+                <button id="open-loader" class="button btn-highlight">
+                    AEM Multi-Loader
+                </button>
+
+                <div class="row-group">
+                    <button id="open-urls" class="button btn-primary">Check CC-LC</button>
+                    <button id="publish" class="button btn-dark pulse">Publish</button>
+                    <button id="check-images" class="button btn-secondary">Check Images</button>
+                </div>
+            </div>
+
+            <button id="btn-tracking-main" class="btn-minimal">
+                📂 Open Tracking Sheet
             </button>
-            <button id="tab-xfrags" class="tab-btn tab-red">
-                XFrags <span id="count-xfrags">(0)</span>
-            </button>
-        </div>
 
-        <div id="wrapper-pages" class="list-wrapper active">
-            <div class="section-header" style="display: flex; justify-content: space-between;">
-                <span style="color:#0f62fe">Standard Pages</span>
-                <span id="togglePages" class="toggle-link" style="color:#0f62fe">(Select All)</span>
+            <hr class="separator">
+
+            <div class="accordion-group">
+
+                <button class="accordion">Info & Utilities</button>
+                <div class="panel">
+                    <div class="row-group-small">
+                        <button id="copy-infos" class="button btn-sub">Copy Info (Pre)</button>
+                        <button id="copy-infos-self" class="button btn-sub">Copy Info (Self)</button>
+                    </div>
+                    <div class="row-group-small">
+                        <button id="copy-urls" class="button btn-sub">Copy URLs</button>
+                        <button id="copy-date" class="button btn-sub btn-date">Copy Date</button>
+                    </div>
+                </div>
+
+                <button class="accordion">Jira Comments</button>
+                <div class="panel">
+                    <div class="sub-group-label">Generate Comment</div>
+                    <div class="row-group-small">
+                        <button id="comment-pre" class="button btn-sub">Pre-QA</button>
+                        <button id="comment-pos" class="button btn-sub">Pos-QA</button>
+                    </div>
+
+                    <div class="sub-group-label">Report Comment</div>
+                    <div class="row-group-small">
+                        <button id="report-comment-pre" class="button btn-sub">Report Pre</button>
+                        <button id="report-comment-pos" class="button btn-sub">Report Pos</button>
+                    </div>
+                </div>
+
             </div>
-            <div class="link-list" id="pagesListContainer" style="border-left: 3px solid #0f62fe;"></div>
         </div>
 
-        <div id="wrapper-xfrags" class="list-wrapper">
-            <div class="section-header" style="display: flex; justify-content: space-between;">
-                <span style="color:#da1e28">Experience Fragments</span>
-                <span id="toggleXFrags" class="toggle-link" style="color:#da1e28">(Select All)</span>
+        <div id="loader-view" style="display:none;">
+            <h3>AEM Multi-Loader</h3>
+
+            <div id="step-input">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <label>Public URLs (Pages or XFrags)</label>
+                    <span id="auto-save-msg" style="font-size:9px; color:green;"></span>
+                </div>
+                <textarea id="rawInput" placeholder="Paste links here..."></textarea>
+
+                <div class="controls-row">
+                    <button id="btn-import-jira" class="btn-small" style="background:#009d9a; flex:2;">Import
+                        Jira</button>
+                    <button id="btnClear" class="btn-small" style="background:#da1e28; flex:1;">Clear</button>
+                    <button id="btnParse" class="btn-small" style="background:#0f62fe; flex:2;">Analyze &raquo;</button>
+                </div>
             </div>
-            <div class="link-list" id="xfragsListContainer" style="border-left: 3px solid #da1e28;"></div>
+
+            <div id="step-selection" style="display:none;">
+                <div class="mode-toggle-container">
+                    <span style="font-size:11px; font-weight:bold; color:#555;">Mode:</span>
+                    <select id="mode-select"
+                        style="width: 100%; padding: 5px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                        <option value="locale-preview">Locale Preview (Default QA)</option>
+                        <option value="locale-edit">Locale Edit</option>
+                        <option value="lm-edit">LM Edit (Default DEV)</option>
+                        <option value="lm-preview">LM Preview</option>
+                    </select>
+                </div>
+
+                <div id="en-source-wrapper"
+                    style="background: #f4f4f4; padding: 8px; border-radius: 4px; margin-top: 10px; border: 1px solid #e0e0e0;">
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                        <input type="checkbox" id="chk-en-source" style="margin-right: 8px; cursor: pointer;">
+                        <label for="chk-en-source"
+                            style="font-size: 12px; color: #333; cursor: pointer; font-weight: bold;">
+                            Open English Source (EN)
+                        </label>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-left: 20px;">
+                        <input type="checkbox" id="chk-en-live" style="margin-right: 8px; cursor: pointer;" disabled>
+                        <label id="lbl-en-live" for="chk-en-live"
+                            style="font-size: 11px; color: #999; cursor: pointer;">
+                            Open as Live Link (www.ibm.com)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="section-header"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 5px; font-weight: bold;">
+                    <div style="display: flex; align-items: center;">
+                        Target Locales
+                        <span id="locale-counter"
+                            style="margin-left: 5px; font-size: 0.9em; color: #666; font-weight: normal;">(0/0)</span>
+                    </div>
+                    <span id="toggleLocales" class="toggle-link"
+                        style="cursor: pointer; font-size: 0.8em; color: #0f62fe;">(Select All)</span>
+                </div>
+                <div class="locale-grid" id="localeContainer"></div>
+
+                <div class="tabs-container">
+                    <button id="tab-pages" class="tab-btn tab-blue active">
+                        Pages <span id="count-pages">(0)</span>
+                    </button>
+                    <button id="tab-xfrags" class="tab-btn tab-red">
+                        XFrags <span id="count-xfrags">(0)</span>
+                    </button>
+                </div>
+
+                <div id="wrapper-pages" class="list-wrapper active">
+                    <div class="section-header" style="display: flex; justify-content: space-between;">
+                        <span style="color:#0f62fe">Standard Pages</span>
+                        <span id="togglePages" class="toggle-link" style="color:#0f62fe">(Select All)</span>
+                    </div>
+                    <div class="link-list" id="pagesListContainer" style="border-left: 3px solid #0f62fe;"></div>
+                </div>
+
+                <div id="wrapper-xfrags" class="list-wrapper">
+                    <div class="section-header" style="display: flex; justify-content: space-between;">
+                        <span style="color:#da1e28">Experience Fragments</span>
+                        <span id="toggleXFrags" class="toggle-link" style="color:#da1e28">(Select All)</span>
+                    </div>
+                    <div class="link-list" id="xfragsListContainer" style="border-left: 3px solid #da1e28;"></div>
+                </div>
+
+                <button id="btnLaunch" class="button" style="background:#0f62fe; margin-top:10px;">Launch Tabs</button>
+            </div>
+
+            <div class="footer-nav">
+                <button id="btn-back" class="btn-small" style="background:#666; width:100%;">&laquo; Back to
+                    Menu</button>
+            </div>
         </div>
 
-        <button id="btnLaunch" class="button" style="background:#0f62fe; margin-top:10px;">Launch Tabs</button>
-      </div>
-
-      <div class="footer-nav">
-        <button id="btn-back" class="btn-small" style="background:#666; width:100%;">&laquo; Back to Menu</button>
-      </div>
     </div>
-
-  </div>
-  <script src="/core/popup.js"></script>
+    <script src="/core/popup.js"></script>
 </body>
+
 </html>
