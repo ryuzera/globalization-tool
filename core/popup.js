@@ -990,14 +990,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.className = 'accordion';
 
                 // Using ticket-badge logic for a unified aesthetic if it's a real ticket
+                const restoreFuncStr = `
+                    event.stopPropagation();
+                    const rawInput = document.getElementById('raw-input');
+                    if(rawInput) { rawInput.value = \`${item.urls}\`; rawInput.dispatchEvent(new Event('input')); }
+                    document.getElementById('settings-view').style.display = 'none';
+                    document.getElementById('menu-view').style.display = 'none';
+                    document.getElementById('loader-view').style.display = 'block';
+                    document.getElementById('btn-header-back').style.display = 'block';
+                    document.getElementById('step-input').style.display = 'block';
+                    document.getElementById('step-selection').style.display = 'none';
+                    chrome.storage.local.set({ currentScreen: 'loader', currentStep: 'input', savedTicket: '${item.ticket}' });
+                    const btnAnalyze = document.getElementById('btn-analyze');
+                    if(btnAnalyze) setTimeout(() => btnAnalyze.click(), 50);
+                `.replace(/\n/g, '').replace(/\s{2,}/g, ' '); // Inline cleanly
+
                 if (item.ticket !== "No Ticket Details") {
                     if (item.jiraUrl) {
-                        btn.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span class="ticket-badge" style="cursor:pointer;" title="Open Jira" onclick="event.stopPropagation(); window.open('${item.jiraUrl}', '_blank');">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span></div>`;
+                        btn.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="ticket-badge" style="cursor:pointer;" title="Restore Ticket" onclick="${restoreFuncStr}">${item.ticket}</span>
+                                <a href="${item.jiraUrl}" target="_blank" onclick="event.stopPropagation();" style="text-decoration:none; color:#0f62fe; font-size:12px;" title="Open Jira">&#8599;</a>
+                                <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span>
+                            </div>`;
                     } else {
-                        btn.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span class="ticket-badge">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span></div>`;
+                        btn.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span class="ticket-badge" style="cursor:pointer;" title="Restore Ticket" onclick="${restoreFuncStr}">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span></div>`;
                     }
                 } else {
-                    btn.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight:bold; color:#888;">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span></div>`;
+                    btn.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight:bold; color:#888; cursor:pointer;" title="Restore Links" onclick="${restoreFuncStr}">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span></div>`;
                 }
 
                 // Panel Container
