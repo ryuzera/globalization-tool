@@ -490,6 +490,122 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // --- LÓGICA DO BOTÃO ON/OFF (AUTO-EXECUTE) ---
+    const chkAutoExec = document.getElementById('chkAutoExec');
+    const autoExecLabel = document.getElementById('autoExecLabel');
+    const autoExecScriptName = "helperAutoExecute.js";
+
+    if (chkAutoExec) {
+        const updateToggleUI = (isActive) => {
+            chkAutoExec.checked = isActive; // Move a bolinha visualmente
+            if (isActive) {
+                autoExecLabel.style.color = "#24a148"; // Texto fica verde
+                autoExecLabel.style.fontWeight = "bold";
+            } else {
+                autoExecLabel.style.color = "#666"; // Texto fica cinza
+                autoExecLabel.style.fontWeight = "normal";
+            }
+        };
+
+        chrome.storage.sync.get(autoExecScriptName, (data) => {
+            updateToggleUI(!!data[autoExecScriptName]);
+        });
+
+        chkAutoExec.addEventListener('change', (e) => {
+            const newState = e.target.checked; // Retorna true ou false
+            
+            chrome.storage.sync.set({ [autoExecScriptName]: newState }, () => {
+                updateToggleUI(newState);
+            });
+        });
+        
+        if (autoExecLabel) {
+            autoExecLabel.addEventListener('click', () => {
+                chkAutoExec.click();
+            });
+        }
+    }
+
+    // --- LÓGICA DO BOTÃO COPY URLS ONLY ---
+    const btnCopyUrlsOnly = document.getElementById('btnCopyUrlsOnly');
+
+    if (btnCopyUrlsOnly) {
+        btnCopyUrlsOnly.addEventListener('click', async () => {
+            const selectedLocales = Array.from(document.querySelectorAll('.chk-locale:checked')).map(cb => cb.value);
+            const selectedPages = Array.from(pagesListContainer.querySelectorAll('.chk-link:checked')).map(cb => cb.value);
+            const selectedXFrags = Array.from(xfragsListContainer.querySelectorAll('.chk-link:checked')).map(cb => cb.value);
+
+            const mode = modeSelect.value;
+            const openEnSource = chkEnSource.checked;
+            const isLiveMode = chkEnLive.checked;
+
+            const totalLinks = selectedPages.length + selectedXFrags.length;
+
+            if ((selectedLocales.length === 0 && !openEnSource) || totalLinks === 0) {
+                return alert("Select at least 1 locale and 1 link (Page or XFrag) to copy.");
+            }
+
+            const buildUrl = (path, localeCode, isEnSource, isLive) => {
+                const baseUrl = "https://prod-cloud-author.aem.ibm.net";
+                const isXFrag = selectedXFrags.includes(path);
+                const rootPrefix = isXFrag ? "/content/experience-fragments/adobe-cms" : "/content/adobe-cms";
+
+                if (isEnSource && isLive) {
+                    if (isXFrag) return null;
+                    return `https://www.ibm.com/us-en${path}`;
+                }
+
+                let midPath = "";
+                if (isEnSource) {
+                    midPath = mode.includes('lm') ? "/language-masters/en" : "/us/en";
+                } else {
+                    midPath = mode.includes('lm') ? `/language-masters/${localeCode}` : `/${localeCode}`;
+                }
+
+                const fullPath = `${rootPrefix}${midPath}${path}`;
+
+                if (mode.includes('edit')) {
+                    return `${baseUrl}/editor.html${fullPath}`;
+                } else {
+                    return `${baseUrl}${fullPath}?wcmmode=disabled`;
+                }
+            };
+
+            let copiedUrls = [];
+            const allSelected = [...selectedPages, ...selectedXFrags];
+
+            if (openEnSource) {
+                for (const path of allSelected) {
+                    const url = buildUrl(path, 'en', true, isLiveMode);
+                    if (url) copiedUrls.push(url);
+                }
+            }
+
+            for (let i = 0; i < selectedLocales.length; i++) {
+                const locCode = selectedLocales[i];
+                for (const path of allSelected) {
+                    const url = buildUrl(path, locCode, false, false);
+                    if (url) copiedUrls.push(url);
+                }
+            }
+
+            if (copiedUrls.length > 0) {
+                try {
+                    await navigator.clipboard.writeText(copiedUrls.join('\n'));
+                    const originalText = btnCopyUrlsOnly.textContent;
+                    btnCopyUrlsOnly.textContent = "Links Copied!";
+                    
+                    setTimeout(() => {
+                        btnCopyUrlsOnly.textContent = originalText;
+                    }, 500);
+                } catch (err) {
+                    console.error('Clipboard error:', err);
+                    alert("Failed to copy URLs to clipboard.");
+                }
+            }
+        });
+    }
+
     // --- LAUNCH LOGIC ---
     btnLaunch.addEventListener('click', async () => {
         const selectedLocales = Array.from(document.querySelectorAll('.chk-locale:checked')).map(cb => cb.value);

@@ -140,8 +140,22 @@
                         <span id="locale-counter"
                             style="margin-left: 5px; font-size: 0.9em; color: #666; font-weight: normal;">(0/0)</span>
                     </div>
-                    <span id="toggleLocales" class="toggle-link"
-                        style="cursor: pointer; font-size: 0.8em; color: #0f62fe;">(Select All)</span>
+                    
+                    <div style="display: flex; align-items: center; gap: 12px; font-size: 0.8em; font-weight: normal;">
+                        
+                        <div style="display: flex; align-items: center; gap: 6px;margin-left: 10px;" title="Ativar/Desativar auto-clique">
+                            <span id="autoExecLabel" style="color: #666; cursor: pointer;">Auto QA Helper</span>
+                            <label class="switch" style="margin: 0;">
+                                <input type="checkbox" id="chkAutoExec">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <span style="color: #ccc;">|</span>
+                        <span id="btnCopyUrlsOnly" style="cursor: pointer; color: #0f62fe;" title="Copiar URLs">Copy Links</span>
+                        <span style="color: #ccc;">|</span>
+                        <span id="toggleLocales" class="toggle-link" style="cursor: pointer; color: #0f62fe;">(Select All)</span>
+                    </div>
                 </div>
                 <div class="locale-grid" id="localeContainer"></div>
 
