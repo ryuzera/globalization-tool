@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- DOM ELEMENTS ---
     const menuView = document.getElementById('menu-view');
     const loaderView = document.getElementById('loader-view');
+    const settingsView = document.getElementById('settings-view');
     const stepInput = document.getElementById('step-input');
     const stepSelection = document.getElementById('step-selection');
 
@@ -20,8 +21,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnClearTicket = document.getElementById('btn-clear-ticket');
 
     const btnTsHeader = document.getElementById('btn-ts-header');
+    const btnSettingsHeader = document.getElementById('btn-settings-header');
     const btnHeaderBack = document.getElementById('btn-header-back');
     const btnTrackingMain = document.getElementById('btn-tracking-main');
+    const btnBackSettings = document.getElementById('btn-back-settings');
+    const btnClearHistory = document.getElementById('btn-clear-history');
+    const historyContainer = document.getElementById('history-container');
 
     const localeContainer = document.getElementById('localeContainer');
     const modeSelect = document.getElementById('mode-select');
@@ -319,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (screen === 'loader') {
             menuView.style.display = 'none';
+            if (settingsView) settingsView.style.display = 'none';
             loaderView.style.display = 'block';
             if (btnHeaderBack) btnHeaderBack.style.display = 'block';
             toggleRoleSwitch(true);
@@ -344,6 +350,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 stepInput.style.display = 'block';
                 stepSelection.style.display = 'none';
             }
+        } else if (screen === 'settings') {
+            menuView.style.display = 'none';
+            loaderView.style.display = 'none';
+            if (settingsView) settingsView.style.display = 'block';
+            if (btnHeaderBack) btnHeaderBack.style.display = 'block';
+            toggleRoleSwitch(true);
+            renderHistory();
         } else {
             toggleRoleSwitch(false);
         }
@@ -427,6 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         renderResults(results.pages, results.xfrags, null, null);
+        saveTicketToHistory(text);
 
         if (results.xfrags.length > 0 && results.pages.length === 0) {
             switchTab('xfrags');
@@ -766,23 +780,175 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- ACCORDION LOGIC (NOVA) ---
-    const acc = document.getElementsByClassName("accordion");
-    for (let i = 0; i < acc.length; i++) {
-        acc[i].addEventListener("click", function () {
-            this.classList.toggle("active");
-            const panel = this.nextElementSibling;
-            if (panel.style.maxHeight) {
-                panel.style.maxHeight = null;
-            } else {
-                panel.style.maxHeight = panel.scrollHeight + "px";
+    // --- ACCORDION LOGIC (NOVA E REUTILIZÁVEL) ---
+    function setupAccordions(container) {
+        const acc = container ? container.getElementsByClassName("accordion") : document.getElementsByClassName("accordion");
+        for (let i = 0; i < acc.length; i++) {
+            // Avoid binding twice
+            if (acc[i].dataset.bound) continue;
+            acc[i].dataset.bound = "true";
+
+            acc[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                const panel = this.nextElementSibling;
+                if (panel.style.maxHeight) {
+                    panel.style.maxHeight = null;
+                } else {
+                    panel.style.maxHeight = panel.scrollHeight + "px";
+                }
+
+                // Only save state for main menu accordions, not history
+                if (!this.closest('#history-container')) {
+                    const allAcc = document.getElementById('menu-view').getElementsByClassName("accordion");
+                    const openIndexes = [];
+                    for (let j = 0; j < allAcc.length; j++) {
+                        if (allAcc[j].classList.contains("active")) openIndexes.push(j);
+                    }
+                    chrome.storage.local.set({ accordionsState: openIndexes });
+                }
+            });
+        }
+    }
+
+    // Initial setup for existing accordions
+    setupAccordions(document.getElementById('menu-view'));
+
+    // --- HISTORY LOGIC ---
+    const MAX_HISTORY = 30;
+
+    function saveTicketToHistory(rawLinks) {
+        chrome.storage.local.get(['ticketHistory', 'savedTicket'], (data) => {
+            let history = data.ticketHistory || [];
+            const urls = rawLinks.trim() ? rawLinks.split(/\s+/).filter(l => l.trim() !== '') : [];
+            if (urls.length === 0) return;
+
+            const ticket = data.savedTicket || "No Ticket Details";
+
+            const newEntry = {
+                ticket: ticket,
+                urls: urls.join('\n'),
+                timestamp: Date.now(),
+                dateLabel: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            history.unshift(newEntry);
+            if (history.length > MAX_HISTORY) {
+                history = history.slice(0, MAX_HISTORY);
             }
-            // Save state
-            const openIndexes = [];
-            for (let j = 0; j < acc.length; j++) {
-                if (acc[j].classList.contains("active")) openIndexes.push(j);
+
+            chrome.storage.local.set({ ticketHistory: history }, () => {
+                renderHistory();
+            });
+        });
+    }
+
+    function renderHistory() {
+        if (!historyContainer) return;
+
+        chrome.storage.local.get(['ticketHistory'], (data) => {
+            const history = data.ticketHistory || [];
+
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<div class="empty-state" style="text-align:center; padding: 20px 0; color: #888; font-size: 11px;">No history available.</div>';
+                return;
             }
-            chrome.storage.local.set({ accordionsState: openIndexes });
+
+            historyContainer.innerHTML = '';
+
+            history.forEach(item => {
+                // Accordion Button
+                const btn = document.createElement('button');
+                btn.className = 'accordion';
+
+                // Using ticket-badge logic for a unified aesthetic if it's a real ticket
+                if (item.ticket !== "No Ticket Details") {
+                    btn.innerHTML = `<span class="ticket-badge" style="background:transparent; border:none; padding:0;">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span>`;
+                } else {
+                    btn.innerHTML = `<span style="font-weight:bold; color:#888;">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span>`;
+                }
+
+                // Panel Container
+                const panel = document.createElement('div');
+                panel.className = 'panel';
+
+                // Content inside panel (TextArea-like look, using CSS)
+                const content = document.createElement('div');
+                content.style.padding = "8px 0";
+                content.style.fontSize = "9px";
+                content.style.fontFamily = "monospace";
+                content.style.color = "#555";
+                content.style.whiteSpace = "pre-wrap";
+                content.style.wordBreak = "break-all";
+                content.style.userSelect = "text";
+                content.textContent = item.urls;
+
+                panel.appendChild(content);
+                historyContainer.appendChild(btn);
+                historyContainer.appendChild(panel);
+            });
+
+            setupAccordions(historyContainer);
+        });
+    }
+
+    // --- SETTINGS VIEW NAVIGATION ---
+    if (btnSettingsHeader) {
+        btnSettingsHeader.addEventListener('click', () => {
+            menuView.style.display = 'none';
+            loaderView.style.display = 'none';
+            settingsView.style.display = 'block';
+            if (btnHeaderBack) btnHeaderBack.style.display = 'block';
+            toggleRoleSwitch(true);
+            saveNavState('settings', null);
+            renderHistory();
+        });
+    }
+
+    if (btnBackSettings) {
+        btnBackSettings.addEventListener('click', () => {
+            settingsView.style.display = 'none';
+            menuView.style.display = 'block';
+            if (btnHeaderBack) btnHeaderBack.style.display = 'none';
+            toggleRoleSwitch(false);
+            saveNavState('menu', null);
+        });
+    }
+
+    if (btnClearHistory) {
+        btnClearHistory.addEventListener('click', () => {
+            if (confirm("Clear all limits and complete history?")) {
+                chrome.storage.local.remove(['ticketHistory'], () => {
+                    renderHistory();
+                });
+            }
+        });
+    }
+
+    if (btnHeaderBack) {
+        btnHeaderBack.addEventListener('click', () => {
+            // Se estiver na tela Settings -> Volta para o Menu
+            // Se estiver na tela Settings -> Volta para o Menu
+            if (settingsView && settingsView.style.display !== 'none') {
+                settingsView.style.display = 'none';
+                menuView.style.display = 'block';
+                btnHeaderBack.style.display = 'none';
+                toggleRoleSwitch(false);
+                saveNavState('menu', null);
+            }
+            // Se estiver na tela Selection -> Volta para Input
+            else if (stepSelection.style.display !== 'none') {
+                stepInput.style.display = 'block';
+                stepSelection.style.display = 'none';
+                saveNavState('loader', 'input');
+            }
+            // Se estiver na tela Input -> Volta para o Menu
+            else {
+                loaderView.style.display = 'none';
+                menuView.style.display = 'block';
+                btnHeaderBack.style.display = 'none';
+                toggleRoleSwitch(false);
+                saveNavState('menu', null);
+            }
         });
     }
 });

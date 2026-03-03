@@ -28,6 +28,7 @@
                     <span id="ticket-display" class="ticket-badge"></span>
                     <span id="btn-clear-ticket" class="ticket-clear-btn" title="Clear All">&times;</span>
                 </div>
+                <button id="btn-settings-header" class="icon-btn" title="Settings">⚙️</button>
                 <button id="btn-ts-header" class="icon-btn" title="Open Tracking Sheet">📂</button>
             </div>
         </div>
@@ -175,6 +176,31 @@
 
             <div class="footer-nav">
                 <button id="btn-back" class="btn-small" style="background:#666; width:100%;">&laquo; Back to
+                    Menu</button>
+            </div>
+        </div>
+
+        <div id="settings-view" style="display:none;">
+            <h3>SETTINGS</h3>
+
+            <div class="settings-section">
+                <div class="section-header" style="justify-content: space-between;">
+                    <span>History (Last 30)</span>
+                    <span id="btn-clear-history" class="toggle-link" style="color:#da1e28; font-weight:bold;">Clear
+                        History</span>
+                </div>
+
+                <div id="history-container" class="accordion-group"
+                    style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                    <!-- Accordions injected here -->
+                    <div class="empty-state" style="text-align:center; padding: 20px 0; color: #888; font-size: 11px;">
+                        No history available.
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-nav">
+                <button id="btn-back-settings" class="btn-small" style="background:#666; width:100%;">&laquo; Back to
                     Menu</button>
             </div>
         </div>
