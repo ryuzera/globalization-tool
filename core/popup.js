@@ -998,7 +998,59 @@ document.addEventListener('DOMContentLoaded', function () {
                 content.style.userSelect = "text";
                 content.textContent = item.urls;
 
+                // Restore Button Container
+                const actionContainer = document.createElement('div');
+                actionContainer.style.marginTop = "8px";
+                actionContainer.style.textAlign = "right";
+
+                // Restore Button
+                const btnRestore = document.createElement('button');
+                btnRestore.className = "btn-small";
+                btnRestore.style.background = "#0f62fe";
+                btnRestore.textContent = "Restore Ticket";
+                btnRestore.addEventListener('click', (e) => {
+                    e.stopPropagation();
+
+                    // Retrieve elements to populate
+                    const rawInput = document.getElementById('raw-input');
+                    const btnAnalyze = document.getElementById('btn-analyze');
+
+                    if (rawInput) {
+                        rawInput.value = item.urls;
+                        rawInput.dispatchEvent(new Event('input'));
+                    }
+
+                    // Optional: If there is a ticket logic to restore, we could also do it here, but analyzeLinks handles it mostly based on the Jira format if we paste the full Jira link. If the user wants to reload exactly that ticket badge, we can set chrome.storage.local
+                    if (item.ticket !== "No Ticket Details") {
+                        chrome.storage.local.set({ savedTicket: item.ticket });
+                        updateTicketUI(item.ticket);
+                    } else {
+                        chrome.storage.local.remove(['savedTicket']);
+                        updateTicketUI(null);
+                    }
+
+                    // Switch view to loader
+                    settingsView.style.display = 'none';
+                    menuView.style.display = 'none';
+                    loaderView.style.display = 'block';
+                    if (btnHeaderBack) btnHeaderBack.style.display = 'block';
+                    toggleRoleSwitch(true);
+
+                    // Force Analyze Step
+                    stepInput.style.display = 'block';
+                    stepSelection.style.display = 'none';
+                    saveNavState('loader', 'input');
+
+                    // Automatically trigger analyze if button exists
+                    if (btnAnalyze) {
+                        // Give UI a tiny beat to render before analysis
+                        setTimeout(() => { btnAnalyze.click(); }, 50);
+                    }
+                });
+
+                actionContainer.appendChild(btnRestore);
                 panel.appendChild(content);
+                panel.appendChild(actionContainer);
                 historyContainer.appendChild(btn);
                 historyContainer.appendChild(panel);
             });
