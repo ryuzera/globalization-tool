@@ -13,9 +13,13 @@
     const boxMatch = fullPageText.match(/https:\/\/ibm\.ent\.box\.com\/file\/[^\s)\]"']+/);
     const boxLink = boxMatch ? boxMatch[0] : "[Link do Box não encontrado]";
 
-    const rawUrls = text.match(/https?:\/\/[^\s)]+/g) || [];
+    const rawMatches = text.match(/-?https?:\/\/[^\s)]+/g) || [];
+    
+    const rawUrls = rawMatches.map(link => link.startsWith('-') ? link.substring(1) : link);
+
     const paths = [];
     const aemPrefix = "https://author-p131558-e1281329.adobeaemcloud.com/editor.html/content/experience-fragments/adobe-cms/language-masters/en/";
+    const prodAemPrefix = "https://prod-cloud-author.aem.ibm.net/editor.html/content/experience-fragments/adobe-cms/language-masters/en/"; // Adicionado para manter o padrão
 
     rawUrls.forEach(url => {
       let cleanUrl = url.split('?')[0];
@@ -32,6 +36,21 @@
         let path = cleanUrl.replace(aemPrefix, "");
         path = path.replace(/\.html$/, '');
         if (path) paths.push("/" + path);
+      }
+      else if (cleanUrl.startsWith(prodAemPrefix)) {
+        let path = cleanUrl.replace(prodAemPrefix, "");
+        path = path.replace(/\.html$/, '');
+        if (path) paths.push("/" + path);
+      }
+      else if (cleanUrl.includes("/content/experience-fragments/")) {
+        try {
+          const u = new URL(cleanUrl);
+          let path = u.pathname;
+          path = path.replace(/^\/editor\.html/, '');
+          path = path.replace(/^\/content\/experience-fragments\/adobe-cms\/language-masters\/en/, '');
+          path = path.replace(/\.html$/, '');
+          paths.push(path);
+        } catch (e) {}
       }
       else if (cleanUrl.startsWith("https://www.ibm.com") || cleanUrl.startsWith("http://www.ibm.com")) {
         try {
