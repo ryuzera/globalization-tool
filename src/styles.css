@@ -198,40 +198,50 @@ h3 {
 
 /* --- TOGGLE SWITCH STYLES --- */
 .switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 18px;
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 18px;
 }
+
 .switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
+
 .slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #8d8d8d;
-  transition: .3s;
-  border-radius: 18px;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #8d8d8d;
+    transition: .3s;
+    border-radius: 18px;
 }
+
 .slider:before {
-  position: absolute;
-  content: "";
-  height: 14px;
-  width: 14px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
 }
-.switch input:checked + .slider {
-  background-color: #24a148; /* Verde da IBM quando ativo */
+
+.switch input:checked+.slider {
+    background-color: #24a148;
+    /* Verde da IBM quando ativo */
 }
-.switch input:checked + .slider:before {
-  transform: translateX(14px); /* Move a bolinha para a direita */
+
+.switch input:checked+.slider:before {
+    transform: translateX(14px);
+    /* Move a bolinha para a direita */
 }
 
 /* --- Loader View Specifics --- */
@@ -450,6 +460,7 @@ textarea {
     background-color: #f4f4f4;
     color: #444;
     cursor: pointer;
+    flex-shrink: 0;
     padding: 10px 12px;
     width: 100%;
     border: none;
@@ -491,6 +502,7 @@ textarea {
     background-color: white;
     max-height: 0;
     overflow: hidden;
+    flex-shrink: 0;
     transition: max-height 0.2s ease-out;
     border-left: 2px solid #e8f0fe;
     margin-bottom: 2px;

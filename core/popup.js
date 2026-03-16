@@ -152,9 +152,19 @@ document.addEventListener('DOMContentLoaded', function () {
             ticketDisplay.textContent = ticketId;
             ticketContainer.classList.add('active');
             chrome.storage.local.set({ savedTicket: ticketId });
+            ticketDisplay.style.cursor = 'pointer';
+            ticketDisplay.title = 'Open Jira Ticket';
+            ticketDisplay.onclick = () => {
+                chrome.storage.local.get(['savedTicketUrl'], (res) => {
+                    if (res.savedTicketUrl) chrome.tabs.create({ url: res.savedTicketUrl });
+                });
+            };
         } else {
             ticketDisplay.textContent = "";
             ticketContainer.classList.remove('active');
+            ticketDisplay.style.cursor = 'default';
+            ticketDisplay.title = '';
+            ticketDisplay.onclick = null;
         }
     }
 
@@ -527,12 +537,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         chkAutoExec.addEventListener('change', (e) => {
             const newState = e.target.checked; // Retorna true ou false
-            
+
             chrome.storage.sync.set({ [autoExecScriptName]: newState }, () => {
                 updateToggleUI(newState);
             });
         });
-        
+
         if (autoExecLabel) {
             autoExecLabel.addEventListener('click', () => {
                 chkAutoExec.click();
@@ -608,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     await navigator.clipboard.writeText(copiedUrls.join('\n'));
                     const originalText = btnCopyUrlsOnly.textContent;
                     btnCopyUrlsOnly.textContent = "Links Copied!";
-                    
+
                     setTimeout(() => {
                         btnCopyUrlsOnly.textContent = originalText;
                     }, 500);
@@ -740,12 +750,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (match) tsUrl = match[0];
                         }
 
-                        return { ticket: ticket, text: descText, tsUrl: tsUrl };
+                        return { ticket: ticket, text: descText, tsUrl: tsUrl, jiraUrl: location.href };
                     }
                 }, (results) => {
                     btnImport.textContent = "Import Jira";
                     if (results && results[0] && results[0].result) {
                         const data = results[0].result;
+                        if (data.jiraUrl) chrome.storage.local.set({ savedTicketUrl: data.jiraUrl });
                         if (data.ticket) updateTicketUI(data.ticket);
                         if (data.tsUrl) chrome.storage.local.set({ savedTrackingSheetUrl: data.tsUrl });
 
@@ -910,7 +921,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (panel.style.maxHeight) {
                     panel.style.maxHeight = null;
                 } else {
-                    panel.style.maxHeight = panel.scrollHeight + "px";
+                    panel.style.maxHeight = panel.scrollHeight + 50 + "px";
                 }
 
                 // Only save state for main menu accordions, not history
@@ -933,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const MAX_HISTORY = 30;
 
     function saveTicketToHistory(rawLinks) {
-        chrome.storage.local.get(['ticketHistory', 'savedTicket'], (data) => {
+        chrome.storage.local.get(['ticketHistory', 'savedTicket', 'savedTicketUrl', 'savedTrackingSheetUrl'], (data) => {
             let history = data.ticketHistory || [];
             const urls = rawLinks.trim() ? rawLinks.split(/\s+/).filter(l => l.trim() !== '') : [];
             if (urls.length === 0) return;
@@ -944,7 +955,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 ticket: ticket,
                 urls: urls.join('\n'),
                 timestamp: Date.now(),
-                dateLabel: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                dateLabel: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                jiraUrl: data.savedTicketUrl || null,
+                tsUrl: data.savedTrackingSheetUrl || null
             };
 
             history.unshift(newEntry);
@@ -977,10 +990,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.className = 'accordion';
 
                 // Using ticket-badge logic for a unified aesthetic if it's a real ticket
+                const restoreFuncStr = `
+                    event.stopPropagation();
+                    const rawInput = document.getElementById('raw-input');
+                    if(rawInput) { rawInput.value = \`${item.urls}\`; rawInput.dispatchEvent(new Event('input')); }
+                    document.getElementById('settings-view').style.display = 'none';
+                    document.getElementById('menu-view').style.display = 'none';
+                    document.getElementById('loader-view').style.display = 'block';
+                    document.getElementById('btn-header-back').style.display = 'block';
+                    document.getElementById('step-input').style.display = 'block';
+                    document.getElementById('step-selection').style.display = 'none';
+                    chrome.storage.local.set({ currentScreen: 'loader', currentStep: 'input', savedTicket: '${item.ticket}' });
+                    const btnAnalyze = document.getElementById('btn-analyze');
+                    if(btnAnalyze) setTimeout(() => btnAnalyze.click(), 50);
+                `.replace(/\n/g, '').replace(/\s{2,}/g, ' '); // Inline cleanly
+
                 if (item.ticket !== "No Ticket Details") {
-                    btn.innerHTML = `<span class="ticket-badge" style="background:transparent; border:none; padding:0;">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span>`;
+                    if (item.jiraUrl) {
+                        btn.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="ticket-badge" style="cursor:pointer;" title="Restore Ticket" onclick="${restoreFuncStr}">${item.ticket}</span>
+                                <a href="${item.jiraUrl}" target="_blank" onclick="event.stopPropagation();" style="text-decoration:none; color:#0f62fe; font-size:12px;" title="Open Jira">&#8599;</a>
+                                <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span>
+                            </div>`;
+                    } else {
+                        btn.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span class="ticket-badge" style="cursor:pointer;" title="Restore Ticket" onclick="${restoreFuncStr}">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span></div>`;
+                    }
                 } else {
-                    btn.innerHTML = `<span style="font-weight:bold; color:#888;">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span>`;
+                    btn.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight:bold; color:#888; cursor:pointer;" title="Restore Links" onclick="${restoreFuncStr}">${item.ticket}</span> <span style="font-weight:normal; font-size:9px; color:#888;">${item.dateLabel}</span></div>`;
                 }
 
                 // Panel Container
@@ -989,16 +1026,108 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Content inside panel (TextArea-like look, using CSS)
                 const content = document.createElement('div');
-                content.style.padding = "8px 0";
-                content.style.fontSize = "9px";
+                content.style.padding = "10px";
+                content.style.margin = "10px 0";
+                content.style.background = "#f4f4f4";
+                content.style.border = "1px solid #e0e0e0";
+                content.style.borderRadius = "6px";
+                content.style.fontSize = "10px";
                 content.style.fontFamily = "monospace";
                 content.style.color = "#555";
                 content.style.whiteSpace = "pre-wrap";
                 content.style.wordBreak = "break-all";
                 content.style.userSelect = "text";
+                content.style.maxHeight = "150px";
+                content.style.overflowY = "auto";
                 content.textContent = item.urls;
 
+                // Restore Button Container
+                const actionContainer = document.createElement('div');
+                actionContainer.style.display = "flex";
+                actionContainer.style.justifyContent = "flex-end";
+                actionContainer.style.alignItems = "center";
+                actionContainer.style.gap = "8px";
+                actionContainer.style.marginBottom = "15px";
+
+                if (item.tsUrl) {
+                    const btnTs = document.createElement('button');
+                    btnTs.className = "icon-btn";
+                    btnTs.style.width = "30px";
+                    btnTs.style.height = "30px";
+                    btnTs.style.background = "#fff";
+                    btnTs.style.border = "1px solid #ccc";
+                    btnTs.style.borderRadius = "4px";
+                    btnTs.style.display = "flex";
+                    btnTs.style.justifyContent = "center";
+                    btnTs.style.alignItems = "center";
+                    btnTs.style.fontSize = "14px";
+                    btnTs.style.cursor = "pointer";
+                    btnTs.title = "Open Tracking Sheet";
+                    btnTs.innerHTML = "📂";
+                    btnTs.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        chrome.tabs.create({ url: item.tsUrl });
+                    });
+                    actionContainer.appendChild(btnTs);
+                }
+
+                // Restore Button
+                const btnRestore = document.createElement('button');
+                btnRestore.className = "btn-small";
+                btnRestore.style.background = "#0f62fe";
+                btnRestore.style.color = "#fff";
+                btnRestore.style.padding = "6px 12px";
+                btnRestore.style.border = "none";
+                btnRestore.style.borderRadius = "4px";
+                btnRestore.style.cursor = "pointer";
+                btnRestore.style.fontWeight = "bold";
+                btnRestore.textContent = "Restore Ticket";
+                btnRestore.addEventListener('click', (e) => {
+                    e.stopPropagation();
+
+                    if (item.ticket !== "No Ticket Details") {
+                        chrome.storage.local.set({ savedTicket: item.ticket });
+                        if (item.jiraUrl) chrome.storage.local.set({ savedTicketUrl: item.jiraUrl });
+                        if (item.tsUrl) chrome.storage.local.set({ savedTrackingSheetUrl: item.tsUrl });
+                        updateTicketUI(item.ticket);
+                    } else {
+                        chrome.storage.local.remove(['savedTicket', 'savedTicketUrl', 'savedTrackingSheetUrl']);
+                        updateTicketUI(null);
+                    }
+
+                    const results = analyzeLinks(item.urls);
+                    if (results) {
+                        // Switch view to loader directly
+                        settingsView.style.display = 'none';
+                        menuView.style.display = 'none';
+                        loaderView.style.display = 'block';
+                        if (btnHeaderBack) btnHeaderBack.style.display = 'block';
+                        toggleRoleSwitch(true);
+
+                        renderResults(results.pages, results.xfrags, null, null);
+
+                        if (results.xfrags.length > 0 && results.pages.length === 0) {
+                            switchTab('xfrags');
+                        } else {
+                            switchTab('pages');
+                        }
+
+                        stepInput.style.display = 'none';
+                        stepSelection.style.display = 'block';
+                        saveNavState('loader', 'selection');
+
+                        if (rawInput) {
+                            rawInput.value = item.urls;
+                            chrome.storage.local.set({ savedLinks: item.urls });
+                        }
+                    } else {
+                        alert("No valid links could be restored.");
+                    }
+                });
+
+                actionContainer.appendChild(btnRestore);
                 panel.appendChild(content);
+                panel.appendChild(actionContainer);
                 historyContainer.appendChild(btn);
                 historyContainer.appendChild(panel);
             });
