@@ -40,7 +40,7 @@
         }
       }
       
-      alert("Nenhum workflow - Core, Custom, Elite ou Standard - foi encontrado!");
+      alert("No workflow - Core, Custom, Elite or Standard - was found!");
       return "";
     }
 

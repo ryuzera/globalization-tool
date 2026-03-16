@@ -2,7 +2,7 @@
   try {
     console.log("jira-info.js executando...");
 
-    const isLaunch = confirm("Este item é um Launch? Cancel: Não // Ok: Sim ");
+    const isLaunch = confirm("Is this item a new release? Cancel: No // OK: Yes");
 
     function getText(selector) {
       const el = document.querySelector(selector);
@@ -35,7 +35,7 @@
         }
       }
       
-      alert("Nenhum workflow - Core, Custom, Elite ou Standard - foi encontrado!");
+      alert("No workflow - Core, Custom, Elite or Standard - was found!");
       return "";
     }
 
@@ -66,7 +66,7 @@
     const finalText = lines.join("\n");
 
     navigator.clipboard.writeText(finalText).then(() => {
-      alert("Copiado: " + (isLaunch ? "É Launch (REAL)" : "Não é Launch"));
+      alert("Copied: " + (isLaunch ? "It's a Launch (REAL)" : "It's not a Launch"));
       console.log("Informações copiadas com sucesso!");
     }).catch(err => {
       const textArea = document.createElement("textarea");
