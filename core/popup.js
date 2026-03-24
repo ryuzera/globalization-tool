@@ -588,7 +588,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const fullPath = `${rootPrefix}${midPath}${path}`;
 
-                if (mode.includes('edit')) {
+                if (mode.includes('treeview')) {
+                    const treePrefix = isXFrag ? "/aem/experience-fragments.html" : "/sites.html";
+                    const treePath = fullPath.replace(/\.html$/, '');
+                    return `${baseUrl}${treePrefix}${treePath}`;
+                } else if (mode.includes('properties')) {
+                    const propsPrefix = "/mnt/overlay/wcm/core/content/sites/properties.html?item=";
+                    const propsPath = fullPath.replace(/\.html$/, '');
+                    return `${baseUrl}${propsPrefix}${propsPath}`;
+                } else if (mode.includes('edit')) {
                     return `${baseUrl}/editor.html${fullPath}`;
                 } else {
                     return `${baseUrl}${fullPath}?wcmmode=disabled`;
@@ -671,7 +679,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const fullPath = `${rootPrefix}${midPath}${path}`;
 
-            if (mode.includes('edit')) {
+            if (mode.includes('treeview')) {
+                const treePrefix = isXFrag ? "/aem/experience-fragments.html" : "/sites.html";
+                const treePath = fullPath.replace(/\.html$/, '');
+                return `${baseUrl}${treePrefix}${treePath}`;
+            } else if (mode.includes('properties')) {
+                const propsPrefix = "/mnt/overlay/wcm/core/content/sites/properties.html?item=";
+                const propsPath = fullPath.replace(/\.html$/, '');
+                return `${baseUrl}${propsPrefix}${propsPath}`;
+            } else if (mode.includes('edit')) {
                 return `${baseUrl}/editor.html${fullPath}`;
             } else {
                 return `${baseUrl}${fullPath}?wcmmode=disabled`;
