@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const countXFragsSpan = document.getElementById('count-xfrags');
     const btnLaunch = document.getElementById('btnLaunch');
 
+    const btnDiscreetPublish = document.getElementById('publish-discreet');
+
     const toggleLocales = document.getElementById('toggleLocales');
     const togglePages = document.getElementById('togglePages');
     const toggleXFrags = document.getElementById('toggleXFrags');
@@ -435,6 +437,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('btnClear').addEventListener('click', clearAll);
     if (btnClearTicket) btnClearTicket.addEventListener('click', clearAll);
+
+    // --- LÓGICA DO PUBLISH NO LOADER VIEW ---
+    if (btnDiscreetPublish) {
+        btnDiscreetPublish.addEventListener("click", () => {
+            const originalHTML = btnDiscreetPublish.innerHTML;
+            
+            btnDiscreetPublish.style.opacity = "0.7";
+            btnDiscreetPublish.style.pointerEvents = "none"; 
+
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (!tabs[0]) {
+                    setTimeout(() => { 
+                        btnDiscreetPublish.innerHTML = originalHTML; 
+                        btnDiscreetPublish.style.opacity = "1";
+                        btnDiscreetPublish.style.pointerEvents = "auto";
+                    }, 0);
+                    return;
+                }
+
+                chrome.scripting.executeScript({ 
+                    target: { tabId: tabs[0].id }, 
+                    files: ["scripts/main/publish.js"] 
+                }, () => {
+                    setTimeout(() => { 
+                        setTimeout(() => { 
+                            btnDiscreetPublish.innerHTML = originalHTML; 
+                            btnDiscreetPublish.style.opacity = "1";
+                            btnDiscreetPublish.style.pointerEvents = "auto";
+                        }, 0);
+                    }, 0); 
+                });
+            });
+        });
+    }
 
     // --- ANALYZE LOGIC ---
     const btnParse = document.getElementById('btnParse');
