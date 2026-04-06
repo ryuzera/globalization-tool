@@ -109,6 +109,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // --- RENDERER ---
+
     function updateCounters() {
         const allLocales = document.querySelectorAll('.chk-locale');
         const checkedLocales = document.querySelectorAll('.chk-locale:checked');
@@ -267,37 +269,61 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- RENDERER ---
-    function renderResults(pages, xfrags, savedPages = null, savedXFrags = null) {
-        pagesListContainer.innerHTML = '';
-        pages.forEach(link => {
-            const div = document.createElement('div');
-            div.className = 'link-item';
-            const isChecked = savedPages ? savedPages.includes(link) : true;
-            const checkedAttr = isChecked ? 'checked' : '';
-            div.innerHTML = `<input type="checkbox" class="chk-link page-link" value="${link}" ${checkedAttr}> ${link}`;
-            pagesListContainer.appendChild(div);
-        });
+    function renderResults(pages, xfrags, savedPages = null, savedXFrags = null, publishedLinks = []) {
+    pagesListContainer.innerHTML = '';
+    pages.forEach(link => {
+        const div = document.createElement('div');
+        const isChecked = savedPages ? savedPages.includes(link) : true;
+        const checkedAttr = isChecked ? 'checked' : '';
+        
+        // Verifica se já foi publicado
+        const isPublished = publishedLinks.includes(link);
+        const pubCheckedAttr = isPublished ? 'checked' : '';
+        const greenClass = isPublished ? 'published-green' : '';
 
-        xfragsListContainer.innerHTML = '';
-        xfrags.forEach(link => {
-            const div = document.createElement('div');
-            div.className = 'link-item';
-            const isChecked = savedXFrags ? savedXFrags.includes(link) : true;
-            const checkedAttr = isChecked ? 'checked' : '';
-            div.innerHTML = `<input type="checkbox" class="chk-link xfrag-link" value="${link}" ${checkedAttr}> ${link}`;
-            xfragsListContainer.appendChild(div);
-        });
+        div.className = `link-item ${greenClass}`;
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.innerHTML = `
+            <input type="checkbox" class="chk-link page-link" value="${link}" ${checkedAttr}>
+            <span class="link-text" title="${link}">${link}</span>
+            <input type="checkbox" class="chk-published" title="Marcar como Publicado" value="${link}" ${pubCheckedAttr}>
+        `;
+        pagesListContainer.appendChild(div);
+    });
 
-        stepInput.style.display = 'none';
-        document.getElementById('step-selection').style.display = 'block';
-        updateCounters();
+    xfragsListContainer.innerHTML = '';
+    xfrags.forEach(link => {
+        const div = document.createElement('div');
+        const isChecked = savedXFrags ? savedXFrags.includes(link) : true;
+        const checkedAttr = isChecked ? 'checked' : '';
+        
+        // Verifica se já foi publicado
+        const isPublished = publishedLinks.includes(link);
+        const pubCheckedAttr = isPublished ? 'checked' : '';
+        const greenClass = isPublished ? 'published-green' : '';
+
+        div.className = `link-item ${greenClass}`;
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.innerHTML = `
+            <input type="checkbox" class="chk-link page-link" value="${link}" ${checkedAttr}>
+            <span class="link-text" title="${link}">${link}</span>
+            <input type="checkbox" class="chk-published" title="Marcar como Publicado" value="${link}" ${pubCheckedAttr}>
+        `;
+        xfragsListContainer.appendChild(div);
+    });
+
+    stepInput.style.display = 'none';
+    document.getElementById('step-selection').style.display = 'block';
+    updateCounters();
     }
 
     // --- INITIALIZATION ---
-    chrome.storage.local.get([
-        'userRole', 'savedLinks', 'savedTicket', 'currentScreen', 'currentStep',
-        'linkMode', 'enSource', 'enLive', 'activeTab', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'accordionsState'
-    ], (data) => {
+        chrome.storage.local.get([
+            'userRole', 'savedLinks', 'savedTicket', 'currentScreen', 'currentStep',
+            'linkMode', 'enSource', 'enLive', 'activeTab', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'accordionsState', 'publishedLinks' // Adicionado aqui
+        ], (data) => {
 
         if (data.userRole) {
             const radio = document.querySelector(`input[name="role"][value="${data.userRole}"]`);
@@ -344,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (step === 'selection' && data.savedLinks && data.savedLinks.trim() !== '') {
                 const results = analyzeLinks(data.savedLinks);
                 if (results) {
-                    renderResults(results.pages, results.xfrags, data.selectedPages, data.selectedXFrags);
+                    renderResults(results.pages, results.xfrags, data.selectedPages, data.selectedXFrags, data.publishedLinks || []);
 
                     let targetTab = 'pages';
                     if (data.activeTab) {
@@ -427,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function clearAll() {
         rawInput.value = '';
         updateTicketUI(null);
-        chrome.storage.local.remove(['savedLinks', 'savedTicket', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'savedTrackingSheetUrl']);
+        chrome.storage.local.remove(['savedLinks', 'savedTicket', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'savedTrackingSheetUrl', 'publishedLinks']);
         stepInput.style.display = 'block';
         stepSelection.style.display = 'none';
         chrome.storage.local.set({ currentScreen: 'loader', currentStep: 'input' });
@@ -438,39 +464,27 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btnClear').addEventListener('click', clearAll);
     if (btnClearTicket) btnClearTicket.addEventListener('click', clearAll);
 
-    // --- LÓGICA DO PUBLISH NO LOADER VIEW ---
     if (btnDiscreetPublish) {
-        btnDiscreetPublish.addEventListener("click", () => {
-            const originalHTML = btnDiscreetPublish.innerHTML;
-            
-            btnDiscreetPublish.style.opacity = "0.7";
-            btnDiscreetPublish.style.pointerEvents = "none"; 
+            btnDiscreetPublish.addEventListener("click", () => {
+                const originalHTML = btnDiscreetPublish.innerHTML;
+                
+                btnDiscreetPublish.style.opacity = "0.7";
+                btnDiscreetPublish.style.pointerEvents = "none"; 
 
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if (!tabs[0]) {
-                    setTimeout(() => { 
-                        btnDiscreetPublish.innerHTML = originalHTML; 
-                        btnDiscreetPublish.style.opacity = "1";
-                        btnDiscreetPublish.style.pointerEvents = "auto";
-                    }, 0);
-                    return;
-                }
+                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                    if (!tabs[0]) {
+                        return;
+                    }
 
-                chrome.scripting.executeScript({ 
-                    target: { tabId: tabs[0].id }, 
-                    files: ["scripts/main/publish.js"] 
-                }, () => {
-                    setTimeout(() => { 
-                        setTimeout(() => { 
-                            btnDiscreetPublish.innerHTML = originalHTML; 
-                            btnDiscreetPublish.style.opacity = "1";
-                            btnDiscreetPublish.style.pointerEvents = "auto";
-                        }, 0);
-                    }, 0); 
+                    chrome.scripting.executeScript({ 
+                        target: { tabId: tabs[0].id }, 
+                        files: ["scripts/main/publish.js"] 
+                    }, () => {
+                        window.close();
+                    });
                 });
             });
-        });
-    }
+        }
 
     // --- ANALYZE LOGIC ---
     const btnParse = document.getElementById('btnParse');
@@ -531,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // Global Listener
+    // Global Listener (Procure por esta parte no seu código e atualize)
     document.addEventListener('change', (e) => {
         if (e.target.classList.contains('chk-locale')) {
             updateCounters();
@@ -547,6 +561,19 @@ document.addEventListener('DOMContentLoaded', function () {
             updateCounters();
             const currentSelected = Array.from(xfragsListContainer.querySelectorAll('.chk-link:checked')).map(cb => cb.value);
             chrome.storage.local.set({ selectedXFrags: currentSelected });
+        }
+        // NOVA LÓGICA: Captura o clique no checkbox de publicado
+        else if (e.target.classList.contains('chk-published')) {
+            const linkItem = e.target.closest('.link-item');
+            if (e.target.checked) {
+                linkItem.classList.add('published-green');
+            } else {
+                linkItem.classList.remove('published-green');
+            }
+            
+            // Salva as urls marcadas no storage para não perder ao fechar a extensão
+            const publishedLinks = Array.from(document.querySelectorAll('.chk-published:checked')).map(cb => cb.value);
+            chrome.storage.local.set({ publishedLinks: publishedLinks });
         }
     });
 
@@ -649,6 +676,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
+            
+
             for (let i = 0; i < selectedLocales.length; i++) {
                 const locCode = selectedLocales[i];
                 for (const path of allSelected) {
@@ -694,7 +723,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (openEnSource) totalTabs += totalLinks;
 
         if (totalTabs > 30 && !confirm(`Opening ${totalTabs} tabs. Confirm?`)) return;
-        if (!chrome.tabGroups) return alert("Missing tabGroups permission.");
+        
+        if (!chrome.tabGroups) {
+            console.warn("Missing tabGroups permission in manifest. Tabs will open without grouping.");
+        }
 
         const buildUrl = (path, localeCode, isEnSource, isLive) => {
             const baseUrl = "https://prod-cloud-author.aem.ibm.net";
@@ -730,10 +762,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
+        const allSelected = [...selectedPages, ...selectedXFrags];
+
         if (openEnSource) {
             const tabIds = [];
-            const allSelected = [...selectedPages, ...selectedXFrags];
-
             for (const path of allSelected) {
                 const url = buildUrl(path, 'en', true, isLiveMode);
                 if (url) {
@@ -741,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     tabIds.push(tab.id);
                 }
             }
-            if (tabIds.length > 0) {
+            if (tabIds.length > 0 && chrome.tabGroups) {
                 const groupId = await chrome.tabs.group({ tabIds: tabIds });
                 await chrome.tabGroups.update(groupId, {
                     title: isLiveMode ? "EN (LIVE)" : "EN (SOURCE)",
@@ -750,24 +782,51 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        for (let i = 0; i < selectedLocales.length; i++) {
-            const locCode = selectedLocales[i];
-            const tabIds = [];
-            const allSelected = [...selectedPages, ...selectedXFrags];
+        const MAX_LOCALES = 5;
 
-            for (const path of allSelected) {
-                const url = buildUrl(path, locCode, false, false);
-                if (url) {
-                    const tab = await chrome.tabs.create({ url: url, active: false });
-                    tabIds.push(tab.id);
+        if (selectedLocales.length > MAX_LOCALES) {
+            for (let p = 0; p < allSelected.length; p++) {
+                const path = allSelected[p];
+                const tabIdsForThisPage = [];
+                
+                for (let i = 0; i < selectedLocales.length; i++) {
+                    const locCode = selectedLocales[i];
+                    const url = buildUrl(path, locCode, false, false);
+                    if (url) {
+                        const tab = await chrome.tabs.create({ url: url, active: false });
+                        tabIdsForThisPage.push(tab.id);
+                    }
+                }
+                
+                if (tabIdsForThisPage.length > 0 && chrome.tabGroups) {
+                    const groupId = await chrome.tabs.group({ tabIds: tabIdsForThisPage });
+                    await chrome.tabGroups.update(groupId, {
+                        title: `#${p + 1}`, 
+                        color: groupColors[p % groupColors.length]
+                    });
                 }
             }
-            if (tabIds.length > 0) {
-                const groupId = await chrome.tabs.group({ tabIds: tabIds });
-                await chrome.tabGroups.update(groupId, {
-                    title: locCode.toUpperCase(),
-                    color: groupColors[i % groupColors.length]
-                });
+
+        } else {
+            for (let i = 0; i < selectedLocales.length; i++) {
+                const locCode = selectedLocales[i];
+                const tabIds = [];
+
+                for (const path of allSelected) {
+                    const url = buildUrl(path, locCode, false, false);
+                    if (url) {
+                        const tab = await chrome.tabs.create({ url: url, active: false });
+                        tabIds.push(tab.id);
+                    }
+                }
+                
+                if (tabIds.length > 0 && chrome.tabGroups) {
+                    const groupId = await chrome.tabs.group({ tabIds: tabIds });
+                    await chrome.tabGroups.update(groupId, {
+                        title: locCode.toUpperCase(),
+                        color: groupColors[i % groupColors.length]
+                    });
+                }
             }
         }
     });
@@ -923,7 +982,7 @@ document.addEventListener('DOMContentLoaded', function () {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (!tabs[0]) return;
                 chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ["scripts/main/publish.js"] }, () => {
-                    setTimeout(() => { btnPublish.textContent = originalText; }, 0);
+                    window.close(); 
                 });
             });
         });

@@ -17,6 +17,10 @@
     const paths = [];
 
     urls.forEach(url => {
+      if (url.startsWith("https://experience.adobe.com/#/")) {
+        return; 
+      }
+
       try {
         const u = new URL(url);
         let path = u.pathname;
@@ -40,7 +44,7 @@
     const finalText = uniquePaths.join("\n");
 
     if (uniquePaths.length === 0) {
-      console.warn("No URLs found.");
+      console.warn("Nenhuma URL válida encontrada (ou todas foram ignoradas).");
       return;
     }
 

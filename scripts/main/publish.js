@@ -37,7 +37,8 @@
             <div id="status-log" style="height: 150px; overflow-y: auto; background: #191924; color: #00ff95; padding: 12px; border-radius: 8px; font-size: 11px; font-family: 'Consolas', monospace; line-height: 1.5; border: 1px solid #333; direction: ltr; text-align: left;"></div>
         </div>
         <div style="display: flex; gap: 10px;">
-            <button id="btn-cancel" style="flex: 1; background: #f1f1f1; color: #666; padding: 10px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; text-transform: uppercase; font-size: 11px;">Cancel</button>
+            <button id="btn-cancel" style="flex: 1; background: #f1f1f1; color: #666; padding: 10px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; text-transform: uppercase; font-size: 11px;">Cancel (ESC)</button>
+            <button id="btn-clear" style="flex: 1; background: #ff6060; color: white; padding: 10px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; text-transform: uppercase; font-size: 11px;">Clear</button>
             <button id="btn-start" style="flex: 2; background: linear-gradient(45deg, #3ABEF9, #3572EF); color: white; padding: 10px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; text-transform: uppercase; font-size: 11px; box-shadow: 0 4px 15px rgba(53, 114, 239, 0.3);">Publish</button>
         </div>
     `;
@@ -47,11 +48,39 @@
 
     const btnStart = document.getElementById("btn-start");
     const btnCancel = document.getElementById("btn-cancel");
+    const btnClear = document.getElementById("btn-clear");
     const log = document.getElementById("status-log");
     const statusContainer = document.getElementById("status-container");
+    const bulkUrls = document.getElementById("bulk-urls");
 
-    const closeBox = () => overlay.remove();
+    const closeBox = () => {
+        document.removeEventListener("keydown", handleEsc);
+        overlay.remove();
+    };
+
     btnCancel.onclick = closeBox;
+
+    const handleEsc = (event) => {
+        if (event.key === "Escape") {
+            closeBox();
+        }
+    };
+
+    document.addEventListener("keydown", handleEsc);
+    btnCancel.onclick = closeBox;
+
+    btnClear.onclick = () => {
+        bulkUrls.value = "";
+        log.innerHTML = "";
+        
+        statusContainer.style.display = "none";
+        
+        btnStart.disabled = false;
+        btnStart.style.opacity = "1";
+        btnStart.innerText = "Publish";
+        btnStart.style.background = "linear-gradient(45deg, #3ABEF9, #3572EF)";
+        btnStart.onclick = startPublish;
+    };
 
     function getLocale(path) {
         const parts = path.split('/');
@@ -66,7 +95,7 @@
     }
 
     const startPublish = async () => {
-        const text = document.getElementById("bulk-urls").value;
+        const text = bulkUrls.value;
         const urls = text.split(/\n/).map(l => l.trim()).filter(l => l.length > 0);
         
         if (urls.length === 0) return;

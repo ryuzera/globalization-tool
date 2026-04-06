@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Globalization Suite",
   "description": "Internal tools created by the Globalization team + AEM Loader",
-  "version": "2.8.9",
+  "version": "3.0",
   "permissions": [
     "scripting",
     "activeTab",
