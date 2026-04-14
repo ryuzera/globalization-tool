@@ -852,7 +852,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         const descEl = document.querySelector("#description-val");
                         const descText = descEl ? descEl.innerText : document.body.innerText;
 
-                        // Find Box Link (Persistence)
                         const links = Array.from(document.querySelectorAll('a'));
                         const boxLink = links.find(a => a.href && (a.href.includes('box.com') || a.href.includes('ibm.box.com')));
                         let tsUrl = boxLink ? boxLink.href : null;
@@ -871,7 +870,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (data.ticket) updateTicketUI(data.ticket);
                         if (data.tsUrl) chrome.storage.local.set({ savedTrackingSheetUrl: data.tsUrl });
 
-                        const urls = data.text.match(/https?:\/\/[^\s"']+/g) || [];
+                        let urls = data.text.match(/https?:\/\/[^\s"']+/g) || [];
+                        urls = urls.filter(url => !url.includes('experience.adobe.com'));
+
                         if (urls.length > 0) {
                             rawInput.value = urls.join('\n');
                             rawInput.dispatchEvent(new Event('input'));
