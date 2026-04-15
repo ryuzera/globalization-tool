@@ -696,7 +696,7 @@ textarea {
 }
 
 #btn-sent-to-translate, #btn-addjob, #btn-joblabel {
-    background: linear-gradient(45deg, #ff790b, #b13b2b);
+    background: linear-gradient(45deg, #017780, #309398);
     border: none;
     color: white;
 }
