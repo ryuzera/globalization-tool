@@ -83,6 +83,21 @@ h3 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.grouping-switch input:checked + span {
+    background: #0f62fe;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: block;
+}
+
+.grouping-switch span {
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: block;
+}
+
 /* Header Tools */
 .header-tools {
     display: flex;

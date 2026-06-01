@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function toggleRoleSwitch(disable) {
         const switcher = document.querySelector('.role-switch');
+        if (!switcher) return;
         if (disable) switcher.classList.add('disabled');
         else switcher.classList.remove('disabled');
     }
@@ -322,12 +323,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- INITIALIZATION ---
         chrome.storage.local.get([
             'userRole', 'savedLinks', 'savedTicket', 'currentScreen', 'currentStep',
-            'linkMode', 'enSource', 'enLive', 'activeTab', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'accordionsState', 'publishedLinks' // Adicionado aqui
+            'linkMode', 'enSource', 'enLive', 'activeTab', 'selectedLocales', 'selectedPages', 'selectedXFrags', 'accordionsState', 'publishedLinks', 'groupingPreference'
         ], (data) => {
 
         if (data.userRole) {
             const radio = document.querySelector(`input[name="role"][value="${data.userRole}"]`);
             if (radio) { radio.checked = true; applyRole(data.userRole); }
+        }
+
+        if (data.groupingPreference) {
+            const radio = document.querySelector(`input[name="grouping"][value="${data.groupingPreference}"]`);
+            if (radio) radio.checked = true;
         }
 
         if (data.linkMode) { modeSelect.value = data.linkMode; }
@@ -413,6 +419,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const role = e.target.value;
             chrome.storage.local.set({ userRole: role });
             applyRole(role);
+        });
+    });
+
+    document.querySelectorAll('input[name="grouping"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            chrome.storage.local.set({ groupingPreference: e.target.value });
         });
     });
 
@@ -782,9 +794,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        const MAX_LOCALES = 5;
+        const groupingMode = document.querySelector('input[name="grouping"]:checked') ? document.querySelector('input[name="grouping"]:checked').value : 'by-url';
 
-        if (selectedLocales.length > MAX_LOCALES) {
+        if (groupingMode === 'by-url') {
             for (let p = 0; p < allSelected.length; p++) {
                 const path = allSelected[p];
                 const tabIdsForThisPage = [];
@@ -893,7 +905,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (btnHeaderBack) btnHeaderBack.style.display = 'block';
         toggleRoleSwitch(true);
 
-        const currentRole = document.querySelector('input[name="role"]:checked').value;
+        const roleInput = document.querySelector('input[name="role"]:checked');
+        const currentRole = roleInput ? roleInput.value : 'qa';
+        
         if (currentRole === 'qa') {
             modeSelect.value = 'locale-preview';
         } else {
